@@ -22,8 +22,8 @@
             #include "UnityCG.cginc"
 
 
-            #include "../Chunks/Struct12.cginc"
-            #include "../Chunks/baseColorVSChunk.cginc"
+            #include "../../Chunks/Struct12.cginc"
+            #include "../../Chunks/baseColorVSChunk.cginc"
 
             ENDCG
         }

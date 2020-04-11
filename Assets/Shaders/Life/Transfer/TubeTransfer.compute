@@ -27,8 +27,8 @@ int _TubeWidth;
 int _TubeLength;
 float _Radius;
 
-#include "../Chunks/cubicCurve.cginc"
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/cubicCurve.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 cubicFromValue( in float val , in int particleID, out float3 upPos , out float3 doPos ){
 
@@ -218,7 +218,7 @@ void Straight(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
 }
 
 
-#include "../Chunks/noise.cginc"
+#include "../../Chunks/noise.cginc"
 
 
 #define NR_THREADS 128

@@ -23,8 +23,8 @@
             #include "UnityCG.cginc"
 
 
-            #include "../Chunks/Struct36.cginc"
-            #include "../Chunks/baseColorVSChunk.cginc"
+            #include "../../Chunks/Struct36.cginc"
+            #include "../../Chunks/baseColorVSChunk.cginc"
 
             ENDCG
         }

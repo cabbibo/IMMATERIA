@@ -1,8 +1,8 @@
 ﻿#pragma kernel Physics
 
-#include "../Chunks/noise.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 float4x4 transform; 
@@ -51,10 +51,10 @@ uint _VertBuffer_COUNT;
 uint _HairBuffer_COUNT;
 uint _PullBuffer_COUNT;
 
-#include "../Chunks/terrainCompute.cginc"
+#include "../../Chunks/terrainCompute.cginc"
 
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 getVel( float3 p1 , float3 p2 ){
 

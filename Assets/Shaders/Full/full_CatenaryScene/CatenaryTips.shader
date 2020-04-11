@@ -34,7 +34,7 @@ Tags { "RenderType"="Opaque" }
     
 
 
-            #include "../Chunks/Struct16.cginc"
+            #include "../../Chunks/Struct16.cginc"
 
             sampler2D _MainTex;
             sampler2D _ColorMap;
@@ -147,7 +147,7 @@ fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos) * .5 + .5;
          // if( ( lookupVal + 1.3) - 1.2*length( tCol ) < .5 ){ return 0;}else{return 1;}
       }
 
-      #include "../Chunks/ShadowDiscardFunction.cginc"
+      #include "../../Chunks/ShadowDiscardFunction.cginc"
       ENDCG
     }
   

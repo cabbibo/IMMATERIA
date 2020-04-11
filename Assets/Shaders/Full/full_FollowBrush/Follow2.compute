@@ -18,10 +18,10 @@ RWStructuredBuffer<Vert> _BaseBuffer;
 int _VertBuffer_COUNT;
 int _BaseBuffer_COUNT;
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/hash.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 

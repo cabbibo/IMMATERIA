@@ -134,7 +134,7 @@ Shader "toonNonCompute"
       #pragma multi_compile_shadowcaster
       #pragma fragmentoption ARB_precision_hint_fastest 
 
-      #include "../Chunks/ShadowCasterPos.cginc"
+      #include "../../Chunks/ShadowCasterPos.cginc"
 
       struct v2f {
         V2F_SHADOW_CASTER;

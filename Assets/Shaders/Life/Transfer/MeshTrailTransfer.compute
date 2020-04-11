@@ -38,9 +38,9 @@ float3 _CameraUp;
 
 float _FullScale;
 
-#include "../Chunks/cubicCurve.cginc"
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/hash.cginc"
+#include "../../Chunks/cubicCurve.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/hash.cginc"
 
 
 

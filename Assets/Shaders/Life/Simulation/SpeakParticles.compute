@@ -33,10 +33,10 @@ int _HumanBuffer_COUNT;
 
 int _ParticlesPerPerson;
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/hash.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 float3 ring( float id , float r ){

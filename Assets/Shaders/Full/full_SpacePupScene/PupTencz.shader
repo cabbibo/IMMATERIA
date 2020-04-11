@@ -43,7 +43,7 @@ ZFail keep
     
 
 
-            #include "../Chunks/Struct16.cginc"
+            #include "../../Chunks/Struct16.cginc"
 
             sampler2D _MainTex;
             sampler2D _ColorMap;
@@ -186,7 +186,7 @@ ZFail keep
       sampler2D _MainTex;
 
 
-      #include "../Chunks/ShadowDiscardFunction.cginc"
+      #include "../../Chunks/ShadowDiscardFunction.cginc"
       ENDCG
     }
 
@@ -223,7 +223,7 @@ Pass replace
     
 
 
-            #include "../Chunks/Struct16.cginc"
+            #include "../../Chunks/Struct16.cginc"
 
 
             struct v2f { 

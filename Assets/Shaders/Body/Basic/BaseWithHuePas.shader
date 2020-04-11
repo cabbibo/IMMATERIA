@@ -19,8 +19,8 @@
             #include "UnityCG.cginc"
 
 
-            #include "../Chunks/Struct36.cginc"
-            #include "../Chunks/hsv.cginc"
+            #include "../../Chunks/Struct36.cginc"
+            #include "../../Chunks/hsv.cginc"
 
             int _SubMeshID;
             int _BaseID;

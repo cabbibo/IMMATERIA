@@ -16,7 +16,7 @@ RWStructuredBuffer<Vert> _HairBuffer;
 int _VertBuffer_COUNT;
 int _SkeletonBuffer_COUNT;
 int _HairBuffer_COUNT;
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 _CameraLeft;
 

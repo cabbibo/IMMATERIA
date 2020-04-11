@@ -53,11 +53,11 @@ int _VertBuffer_COUNT;
 int _TransformBuffer_COUNT;
 int _SpookyBuffer_COUNT;
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/hash.cginc"
-#include "../Chunks/curlNoise.cginc"
-#include "../Chunks/humanForces.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
+#include "../../Chunks/humanForces.cginc"
 
 
 

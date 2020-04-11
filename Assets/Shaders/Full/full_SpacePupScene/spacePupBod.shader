@@ -220,7 +220,7 @@ float atten = LIGHT_ATTENUATION(v);
       #include "UnityCG.cginc"
   
 
-      #include "../Chunks/ShadowCasterPos.cginc"
+      #include "../../Chunks/ShadowCasterPos.cginc"
 
             struct Vert{
       float3 pos;

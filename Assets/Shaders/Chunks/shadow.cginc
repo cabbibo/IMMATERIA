@@ -1,6 +1,6 @@
 
 #include "UnityCG.cginc"
-#include "../Chunks/StructIfDefs.cginc"
+#include "../../Chunks/StructIfDefs.cginc"
 
 
 struct v2f {

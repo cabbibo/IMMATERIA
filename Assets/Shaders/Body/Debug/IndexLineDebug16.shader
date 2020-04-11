@@ -19,8 +19,8 @@
 
 
       
-		  #include "../Chunks/Struct16.cginc"
-      #include "../Chunks/lineIndexDebug.cginc"
+		  #include "../../Chunks/Struct16.cginc"
+      #include "../../Chunks/lineIndexDebug.cginc"
 
 
 

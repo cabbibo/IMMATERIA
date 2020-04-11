@@ -41,8 +41,8 @@ ZFail keep
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/noise.cginc"
-      #include "../Chunks/hsv.cginc"
+      #include "../../Chunks/noise.cginc"
+      #include "../../Chunks/hsv.cginc"
 
 
       uniform int _NumberSteps;
@@ -241,7 +241,7 @@ ZFail keep
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/noise.cginc"
+      #include "../../Chunks/noise.cginc"
 
 
       uniform int _NumberSteps;

@@ -20,7 +20,7 @@
 
       #include "UnityCG.cginc"
 
-      #include "../Chunks/Struct16.cginc"
+      #include "../../Chunks/Struct16.cginc"
 
           uniform int _Count;
           uniform int _NumVertsPerHair;

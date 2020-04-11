@@ -59,11 +59,11 @@ float4x4 _Transform;
 
 
 
-//#include "../Chunks/humanForces.cginc"
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
-//#include "../Chunks/GetRayForce.cginc"
+//#include "../../Chunks/humanForces.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
+//#include "../../Chunks/GetRayForce.cginc"
 
 
 

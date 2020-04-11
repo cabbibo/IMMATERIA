@@ -19,8 +19,8 @@ Shader "Debug/Particles16" {
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/Struct16.cginc"
-      #include "../Chunks/debugVSChunk.cginc"
+      #include "../../Chunks/Struct16.cginc"
+      #include "../../Chunks/debugVSChunk.cginc"
 
 
 

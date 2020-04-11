@@ -35,8 +35,8 @@
 
             #include "UnityCG.cginc"
             #include "AutoLight.cginc"
-            #include "../Chunks/noise.cginc"
-            #include "../Chunks/hsv.cginc"
+            #include "../../Chunks/noise.cginc"
+            #include "../../Chunks/hsv.cginc"
 
 
      struct Vert{
@@ -249,7 +249,7 @@ float atten = LIGHT_ATTENUATION(v);
 
   #include "UnityCG.cginc"
 
-            #include "../Chunks/hash.cginc"
+            #include "../../Chunks/hash.cginc"
 
   struct Vert{
       float3 pos;
@@ -263,7 +263,7 @@ float atten = LIGHT_ATTENUATION(v);
   StructuredBuffer<Vert> _VertBuffer;
   StructuredBuffer<int> _TriBuffer;
 
-      #include "../Chunks/ShadowCasterPos.cginc"
+      #include "../../Chunks/ShadowCasterPos.cginc"
 sampler2D _MainTex;
   struct v2f {
         V2F_SHADOW_CASTER;

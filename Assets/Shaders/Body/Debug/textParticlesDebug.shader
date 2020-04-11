@@ -19,8 +19,8 @@ Shader "Debug/ParticlesText" {
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/Struct20.cginc"
-      #include "../Chunks/debugVSChunk.cginc"
+      #include "../../Chunks/Struct20.cginc"
+      #include "../../Chunks/debugVSChunk.cginc"
 
 
 

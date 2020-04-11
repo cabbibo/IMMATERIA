@@ -19,7 +19,7 @@
             #include "UnityCG.cginc"
 
 
-            #include "../Chunks/Struct12.cginc"
+            #include "../../Chunks/Struct12.cginc"
 
 
             struct v2f { float4 pos : SV_POSITION; float3 nor : NORMAL; };

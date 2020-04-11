@@ -34,8 +34,8 @@ struct Bone{
 int _VertBuffer_COUNT;
 int _SkeletonBuffer_COUNT;
 
-#include "../Chunks/noise.cginc"
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/safeID.cginc"
 
 RWStructuredBuffer<Vert> _VertBuffer;
 RWStructuredBuffer<Bone> _SkeletonBuffer;

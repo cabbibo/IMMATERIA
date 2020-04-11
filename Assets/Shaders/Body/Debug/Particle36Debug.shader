@@ -18,8 +18,8 @@
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/Struct36.cginc"
-      #include "../Chunks/debugVSChunk.cginc"
+      #include "../../Chunks/Struct36.cginc"
+      #include "../../Chunks/debugVSChunk.cginc"
 
       
 

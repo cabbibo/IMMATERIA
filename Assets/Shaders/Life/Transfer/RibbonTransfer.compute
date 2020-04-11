@@ -26,10 +26,10 @@ float3 _CameraForward;
 float3 _CameraRight;
 float3 _CameraUp;
 
-#include "../Chunks/cubicCurve.cginc"
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/cubicCurve.cginc"
+#include "../../Chunks/safeID.cginc"
 
-#include "../Chunks/terrainCompute.cginc"
+#include "../../Chunks/terrainCompute.cginc"
 
 
 

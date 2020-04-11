@@ -1,5 +1,5 @@
 #include "UnityCG.cginc"
-#include "../Chunks/StructIfDefs.cginc"
+#include "../../Chunks/StructIfDefs.cginc"
   struct v2f {
         V2F_SHADOW_CASTER;
         float2 uv : TEXCOORD1;

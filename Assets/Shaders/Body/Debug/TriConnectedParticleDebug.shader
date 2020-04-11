@@ -33,7 +33,7 @@ struct Vert{
   float4 resolver;
   float3 connections[16];
 };
-      #include "../Chunks/debugVSChunk.cginc"
+      #include "../../Chunks/debugVSChunk.cginc"
 
 
 

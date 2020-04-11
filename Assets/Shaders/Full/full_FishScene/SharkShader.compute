@@ -60,10 +60,10 @@ int _VertBuffer_COUNT;
 int _TransformBuffer_COUNT;
 int _FishBuffer_COUNT;
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/hash.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
 float sdBox( float3 p, float3 b )
 {
   float3 d = abs(p) - b;

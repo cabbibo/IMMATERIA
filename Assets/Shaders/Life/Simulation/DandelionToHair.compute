@@ -5,9 +5,9 @@
 #pragma kernel FlatForce
 #pragma kernel Constraint
 
-#include "../Chunks/noise.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 int _VertsPerVert;
@@ -32,7 +32,7 @@ int _NumVertsPerHair;
 float _Length;
 float _Delta;
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 getVel( float3 p1 , float3 p2 ){
 

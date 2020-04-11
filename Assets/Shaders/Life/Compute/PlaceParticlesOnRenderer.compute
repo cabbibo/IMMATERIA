@@ -15,8 +15,8 @@ RWStructuredBuffer<Vert> _VertBuffer;
 int _VertBuffer_COUNT;
 
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/hash.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/hash.cginc"
 
 
 Texture2D<float4> _DepthTexture;

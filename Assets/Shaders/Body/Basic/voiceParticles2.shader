@@ -31,8 +31,8 @@ Tags { "RenderType"="Opaque" }
     
 
 
-            #include "../Chunks/Struct16.cginc"
-            #include "../Chunks/hsv.cginc"
+            #include "../../Chunks/Struct16.cginc"
+            #include "../../Chunks/hsv.cginc"
 
             sampler2D _MainTex;
             sampler2D _ColorMap;
@@ -132,7 +132,7 @@ Tags { "RenderType"="Opaque" }
                
       }
 
-      #include "../Chunks/ShadowDiscardFunction.cginc"
+      #include "../../Chunks/ShadowDiscardFunction.cginc"
       ENDCG
     }
   

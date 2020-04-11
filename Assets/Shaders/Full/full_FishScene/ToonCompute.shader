@@ -22,7 +22,7 @@
         #pragma fragment frag
         #pragma target 4.5
         #include "UnityCG.cginc"
-        #include "../Chunks/Struct16.cginc"
+        #include "../../Chunks/Struct16.cginc"
 
 
 
@@ -129,7 +129,7 @@
       #pragma multi_compile_shadowcaster
       #pragma fragmentoption ARB_precision_hint_fastest 
 
-      #include "../Chunks/ShadowCasterPos.cginc"
+      #include "../../Chunks/ShadowCasterPos.cginc"
 
       struct v2f {
         V2F_SHADOW_CASTER;

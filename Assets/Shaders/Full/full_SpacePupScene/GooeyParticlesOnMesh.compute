@@ -75,11 +75,11 @@ float _Dampening;
 
 
 
-#include "../Chunks/humanForces.cginc"
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
-#include "../Chunks/GetRayForce.cginc"
+#include "../../Chunks/humanForces.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
+#include "../../Chunks/GetRayForce.cginc"
 
 float sdBox( float3 p, float3 b )
 {

@@ -21,10 +21,10 @@ float3 _EmitterPosition;
 int _VertBuffer_COUNT;
 int _SkeletonBuffer_COUNT;
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/hash.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 Texture2D<float4> _HeightMap;

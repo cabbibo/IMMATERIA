@@ -19,7 +19,7 @@ RWStructuredBuffer<Vert> _SkeletonBuffer;
 int _VertBuffer_COUNT;
 int _DandelionBuffer_COUNT;
 int _SkeletonBuffer_COUNT;
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 int _VertsPerVert;
 int _NumVertsPerHair;

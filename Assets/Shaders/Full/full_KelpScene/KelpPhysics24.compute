@@ -2,9 +2,9 @@
 #pragma kernel Collision
 #pragma kernel Constraint
 
-#include "../Chunks/noise.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 float4x4 transform; 
@@ -77,12 +77,12 @@ uint _VertBuffer_COUNT;
 uint _BaseBuffer_COUNT;
 uint _Pullers_COUNT;
 
-#include "../Chunks/terrainCompute.cginc"
+#include "../../Chunks/terrainCompute.cginc"
 
 /*RWStructuredBuffer<Bone> _SDFBoneBuffer;
 int _SDFBoneBuffer_COUNT;
 
-#include "../Chunks/sdfFunctions.cginc"
+#include "../../Chunks/sdfFunctions.cginc"
 
 float2 map(float3 p){
 
@@ -116,7 +116,7 @@ float3 calcNormal( in float3 pos ){
 */
 
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 getVel( float3 p1 , float3 p2 ){
 

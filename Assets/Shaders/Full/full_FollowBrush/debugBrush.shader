@@ -20,7 +20,7 @@ Shader "Brush/debug1" {
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/Struct16.cginc"
+      #include "../../Chunks/Struct16.cginc"
       
 
 

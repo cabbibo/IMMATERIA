@@ -34,7 +34,7 @@ Tags { "RenderType"="Opaque" }
     
 
 
-            #include "../Chunks/Struct16.cginc"
+            #include "../../Chunks/Struct16.cginc"
 
             sampler2D _MainTex;
             sampler2D _ColorMap;

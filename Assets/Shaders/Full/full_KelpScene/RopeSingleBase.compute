@@ -3,9 +3,9 @@
 #pragma kernel CollisionVoice
 #pragma kernel Constraint
 
-#include "../Chunks/noise.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 
@@ -53,7 +53,7 @@ uint _VertBuffer_COUNT;
 uint _BaseBuffer_COUNT;
 
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 getVel( float3 p1 , float3 p2 ){
 

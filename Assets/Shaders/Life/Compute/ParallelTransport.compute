@@ -17,7 +17,7 @@ RWStructuredBuffer<Vert> _ParticleBuffer;
 int _VertBuffer_COUNT;
 int _ParticleBuffer_COUNT;
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 
 

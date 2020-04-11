@@ -36,11 +36,11 @@ float _LifeReduceSpeed;
 int _VertBuffer_COUNT;
 //int _TransformBuffer_COUNT;
 
-#include "../Chunks/safeID.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/hash.cginc"
-#include "../Chunks/curlNoise.cginc"
-#include "../Chunks/humanForces.cginc"
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
+#include "../../Chunks/humanForces.cginc"
 
 float sdBox( float3 p, float3 b )
 {

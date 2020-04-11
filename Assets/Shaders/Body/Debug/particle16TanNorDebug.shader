@@ -19,7 +19,7 @@ Shader "Debug/Particles16TanNor" {
       #pragma fragment frag
 
       #include "UnityCG.cginc"
-      #include "../Chunks/Struct16.cginc"
+      #include "../../Chunks/Struct16.cginc"
       
 
 

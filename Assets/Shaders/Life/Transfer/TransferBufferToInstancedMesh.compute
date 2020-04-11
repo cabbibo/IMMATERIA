@@ -39,7 +39,7 @@ float4x4 _FullWTL;
 float4x4 _FullLTW;
 float    _FullScale;
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 #define NR_THREADS 128
 [numthreads(NR_THREADS,1,1)]
@@ -70,7 +70,7 @@ float _ReturnStrength;
 float _SharkDisplacementForce;
 float _SharkDisplacementRadius;
 
-#include "../Chunks/humanForces.cginc"
+#include "../../Chunks/humanForces.cginc"
 
 #define NR_THREADS 128
 [numthreads(NR_THREADS,1,1)]

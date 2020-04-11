@@ -2,9 +2,9 @@
 #pragma kernel Collision
 #pragma kernel Constraint
 
-#include "../Chunks/noise.cginc"
-#include "../Chunks/snoise.cginc"
-#include "../Chunks/curlNoise.cginc"
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
 
 
 float4x4 _Transform; 
@@ -74,7 +74,7 @@ RWStructuredBuffer<Base> _BaseBuffer;
 uint _VertBuffer_COUNT;
 uint _BaseBuffer_COUNT;
 
-#include "../Chunks/terrainCompute.cginc"
+#include "../../Chunks/terrainCompute.cginc"
 
 
 
@@ -86,7 +86,7 @@ float sdBox( float3 p, float3 b )
 }
 
 
-#include "../Chunks/safeID.cginc"
+#include "../../Chunks/safeID.cginc"
 
 float3 getVel( float3 p1 , float3 p2 ){
 
@@ -111,7 +111,7 @@ float3 springForce( float3 p1 , float3 p2 , float sl ){
 }
 
 
-//#include "../Chunks/humanForces.cginc"
+//#include "../../Chunks/humanForces.cginc"
 
 #define NR_THREADS 64
 
