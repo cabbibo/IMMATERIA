@@ -18,21 +18,21 @@ if you are just a 'show me a code' person, download the repo, go into scenes, an
 
 
 ### Beginner
-1) Scenes/Beginner/MyFirstReality
-2) Scenes/Beginner/MyFirstSimulation
-3) Scenes/Beginner/MyFirstBody
-4) Scenes/Beginner/MyFirstTransferLifeForm
-5) Scenes/Beginner/MyFirstGooeyMesh
-6) Scenes/Beginner/MyFirstBinding
+1) [Scenes/Beginner/MyFirstReality](https://youtu.be/ByIYB63Cre8)
+2) [Scenes/Beginner/MyFirstSimulation](https://youtu.be/LUkdVDGZGzY)
+3) [Scenes/Beginner/MyFirstBody](https://youtu.be/-d8re8Cn9FY)
+4) [Scenes/Beginner/MyFirstTransferLifeForm](https://youtu.be/pouFnB6GAm4)
+5) [Scenes/Beginner/MyFirstGooeyMesh](https://youtu.be/H_08R0Mzq54)
+6) [Scenes/Beginner/MyFirstBinding](https://youtu.be/D5t4-ZiYMH0)
 
-### Intermediate
+### Intermediate ( Coming Soon )
 
 7) Scenes/Intermediate/FormsOnForms
 8) Scenes/Intermediate/FormsOnFormsOnForms
 9) Scenes/Intermediate/CreatingCustomLifeform
 10) Scenes/Intermediate/Hair
   
-### Advanced
+### Advanced ( Coming Soon )
 
 11) Scenes/Advanced/SmoothGooMesh
 12) Scenes/Advanced/HairOnScene
