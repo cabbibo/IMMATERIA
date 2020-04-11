@@ -1,0 +1,86 @@
+﻿#pragma kernel Transfer
+#pragma kernel Gooey
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float2 debug;
+};
+
+float4x4 _TransformBase;
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+
+int _VertsPerMesh;
+
+float _DT;
+
+
+
+#include "../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+
+  if( pID < _VertBuffer_COUNT ){
+    
+    Vert b = _SkeletonBuffer[safeID(pID , _SkeletonBuffer_COUNT )];
+
+    _VertBuffer[sID].pos      = mul( _TransformBase , float4( b.pos , 1));// = v;
+    _VertBuffer[sID].nor      = normalize(mul( _TransformBase , float4( b.nor , 0)));
+    _VertBuffer[sID].tangent  = normalize(mul( _TransformBase , float4( b.tangent , 0)));;
+    _VertBuffer[sID].uv       = b.uv;
+
+
+  }
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Gooey (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+
+  if( pID < _VertBuffer_COUNT ){
+    
+    Vert b = _SkeletonBuffer[safeID(pID , _SkeletonBuffer_COUNT )];
+    Vert vert =  _VertBuffer[sID];
+
+    float3 targetPosition = mul( _TransformBase , float4( b.pos , 1));
+    float3 force = 0;
+
+    force += vert.pos - targetPosition;
+
+    vert.vel += -force * .01;
+    vert.pos += vert.vel;
+    vert.vel *= .9;
+
+
+    vert.nor      = normalize(mul( _TransformBase , float4( b.nor , 0)));
+    vert.tangent  = normalize(mul( _TransformBase , float4( b.tangent , 0)));;
+    vert.uv       = b.uv;
+    _VertBuffer[sID] = vert;
+
+  }
+
+}

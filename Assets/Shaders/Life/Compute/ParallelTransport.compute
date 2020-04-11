@@ -1,0 +1,427 @@
+﻿#pragma kernel Transport
+#pragma kernel Basis
+#pragma kernel ForwardBasis
+
+struct Vert{
+  float3 pos;
+  float3 oPos;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float2 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _ParticleBuffer;
+
+int _VertBuffer_COUNT;
+int _ParticleBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+
+
+
+int _NumVertsPerHair;
+float _Radius;
+
+
+float3 _CameraForward;
+float3 _CameraRight;
+float3 _CameraUp;
+
+
+
+float3 p(int id , int hairID){
+  int sID = safeID( hairID * 2*_NumVertsPerHair  + id * 2 , _VertBuffer_COUNT );
+  return _VertBuffer[sID].pos;
+}
+
+
+void setV( float3 v , int id , int hairID){
+
+  int sID = safeID( hairID * 2*_NumVertsPerHair  + id * 2 , _VertBuffer_COUNT );
+  _VertBuffer[sID].tangent = v;
+
+}
+
+float3 getV( int id , int hairID ){
+
+  int sID = safeID( hairID *  2  *_NumVertsPerHair  + id * 2 , _VertBuffer_COUNT );
+  return _VertBuffer[sID].tangent;
+}
+
+
+
+
+float4x4 rotationMatrix(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return float4x4(oc * axis.x * axis.x + c, oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,0.0,
+                0.0,0.0,0,1);
+
+    /*return float4x4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+*/
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transport (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+   float3 t;
+   float3 b;
+   float3 n;
+
+   int hID = pID;
+
+
+  float3 t0 = normalize(p(1,hID)  - p(0,hID));
+  float3 t0_0 = normalize(p(2,hID) - p(1,hID));
+
+  float3 dir = t0;
+  float3 tangent0 = -normalize( cross(t0 ,_CameraForward));
+
+  //if( dot( t0 , _CameraForward ) < 0 ){ tangent0 *= -1;}
+
+  //v0 = normalize( cross(v0 , t0));
+  //setV(v0,0,hID);
+ 
+
+//for( int j = 0; j < _NumVertsPerHair-1; j++ ){
+  
+  int sID1 = safeID(hID * _NumVertsPerHair * 2 + 0 , _VertBuffer_COUNT );
+  int sID2 = safeID(hID * _NumVertsPerHair * 2 + 1 , _VertBuffer_COUNT );
+  Vert v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + tangent0 * r;//_Radius;
+ //v1.tangent = tangent0;
+ //v1.nor = cross( tangent0 , dir );
+  //_VertBuffer[sID1] = v1; 
+
+  Vert v2 = _VertBuffer[sID2];
+// v2.tangent = -tangent0;
+// v2.nor = cross( tangent0 , dir );
+ // _VertBuffer[sID2] = v2; 
+
+//}
+/*
+
+float3 nV;
+float3 t1;
+float3 t2;
+
+
+  for( int i =0; i < _NumVertsPerHair-2; i++ ){
+
+    t1 = normalize(p(i+1,hID) * 100 - p(i,hID)* 100);
+    t2 = normalize(p(i+2,hID) * 100 - p(i+1,hID) * 100);
+
+    //setT(t1,i);
+
+    b = cross(t1,t2);
+
+    
+
+    if( length(b)==0){
+        nV = getV(i,hID);
+        //setV(nV,i+1,hID);
+    }else{
+
+
+      b=normalize(b);
+      float r = acos(dot(t2,t1));
+      nV = normalize(normalize(mul( rotationMatrix(normalize(b),r) , float4(getV(i,hID),0)).xyz));
+      //setV( nV , i+1,hID);
+      //setV( normalize(cross( normalize(cross(nV,b)) , t1 )) , i+1);
+      //setV( normalize(cross( normalize(cross(nV,b)) , t1 )) , i+1);
+
+    }
+
+
+
+  int sID1 = safeID(hID * _NumVertsPerHair * 2 + (i+1) * 2 + 0 , _VertBuffer_COUNT );
+  int sID2 = safeID(hID * _NumVertsPerHair * 2 + (i+1) * 2 + 1 , _VertBuffer_COUNT );
+
+  Vert v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + nV * .2;//_Radius;
+  v1.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+  v1.nor = normalize(cross( nV , t1 ));
+  _VertBuffer[sID1] = v1; 
+
+  Vert v2 = _VertBuffer[sID2];
+  //v2.pos = v2.pos - nV * .2;
+  v2.tangent = -nV;//normalize(cross(nV,b));//dir;// cross( nV , dir) ;
+  v2.nor = normalize(cross( nV , t1 ));//cross( nV , dir );
+  _VertBuffer[sID2] = v2; 
+
+  }
+
+   sID1 = safeID(hID * _NumVertsPerHair * 2 + (_NumVertsPerHair-1) * 2 + 0 , _VertBuffer_COUNT );
+   sID2 = safeID(hID * _NumVertsPerHair * 2 + (_NumVertsPerHair-1)  * 2 + 1 , _VertBuffer_COUNT );
+
+  v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + nV * .2;//_Radius;
+  v1.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+  v1.nor = normalize(cross( nV , t1 ));
+  _VertBuffer[sID1] = v1; 
+
+
+  v2 = _VertBuffer[sID2];
+  v2.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+   v2.nor = normalize(cross( nV , t1 ));//cross( nV , dir );
+  _VertBuffer[sID2] = v2; 
+
+
+*/
+
+   float l = 1 - saturate(v1.debug.y ) ;
+    //float r =   _Radius  *  saturate(min( rowVal * 4,1-rowVal ))*saturate( min( l * 10 , 1-l)) ;
+    float r =   _Radius * saturate( min( l * 10 , 1-l)) ;//*/
+
+  for( int i =0; i < _NumVertsPerHair; i++ ){
+
+
+    int sID1 = safeID(hID * _NumVertsPerHair * 2 + (i) * 2 + 0 , _VertBuffer_COUNT );
+    int sID2 = safeID(hID * _NumVertsPerHair * 2 + (i) * 2 + 1 , _VertBuffer_COUNT );
+
+    Vert v1 = _VertBuffer[sID1];
+    v1.pos = v1.pos + v1.tangent * r;//_Radius;
+    _VertBuffer[sID1] = v1; 
+
+    Vert v2 = _VertBuffer[sID2];
+    v2.pos = v2.pos - v1.tangent * r;
+    _VertBuffer[sID2] = v2; 
+
+  }
+
+
+   //setT(getT(_Count-2),_Count-1);
+   //setV(getV(_Count-2), _Count-1);
+
+  
+  
+}
+
+
+float3 p2(int id , int hairID){
+  int sID = safeID( hairID *_NumVertsPerHair  + id  , _VertBuffer_COUNT );
+  return _VertBuffer[sID].pos;
+}
+
+
+void setV2( float3 v , int id , int hairID){
+
+  int sID = safeID( hairID *_NumVertsPerHair  + id  , _VertBuffer_COUNT );
+  _VertBuffer[sID].tangent = v;
+
+}
+
+float3 getV2( int id , int hairID ){
+
+  int sID = safeID( hairID  *_NumVertsPerHair  + id  , _VertBuffer_COUNT );
+  return _VertBuffer[sID].tangent;
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Basis (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+   float3 t;
+   float3 b;
+   float3 n;
+
+   int hID = pID;
+
+
+  float3 t0 = normalize(p2(1,hID)  - p2(0,hID));
+  float3 t0_0 = normalize(p2(2,hID) - p2(1,hID));
+
+  float3 dir = t0;
+  float3 tangent0 = -normalize( cross(t0 ,_CameraUp));
+
+  dir = normalize(cross( t0 , _CameraUp ));
+
+  //if( dot( t0 , _CameraUp ) < 0 ){ tangent0 *= -1; }
+
+  //v0 = normalize( cross(v0 , t0));
+  //setV(v0,0,hID);
+ 
+
+//for( int j = 0; j < _NumVertsPerHair-1; j++ ){
+  
+  int sID1 = safeID(hID * _NumVertsPerHair + 0 , _VertBuffer_COUNT );
+
+  Vert v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + tangent0 * r;//_Radius;
+  v1.tangent = tangent0;
+  v1.nor = dir;
+  _VertBuffer[sID1] = v1; 
+
+
+float3 nV;
+float3 t1;
+float3 t2;
+
+
+  for( int i =0; i < _NumVertsPerHair-2; i++ ){
+
+    t1 = normalize(p2(i+1,hID) * 100 - p2(i,hID)* 100);
+    t2 = normalize(p2(i+2,hID) * 100 - p2(i+1,hID) * 100);
+
+    //setT(t1,i);
+
+    b = cross(t1,t2);
+
+    
+
+    if( length(b)==0){
+        nV = getV2(i,hID);
+        //setV(nV,i+1,hID);
+    }else{
+
+
+      b=normalize(b);
+      float r = acos(dot(t2,t1));
+      nV = normalize(normalize(mul( rotationMatrix(normalize(b),r) , float4(getV2(i,hID),0)).xyz));
+      //setV( nV , i+1,hID);
+      //setV( normalize(cross( normalize(cross(nV,b)) , t1 )) , i+1);
+      //setV( normalize(cross( normalize(cross(nV,b)) , t1 )) , i+1);
+
+    }
+
+
+
+  int sID1 = safeID(hID * _NumVertsPerHair  + (i+1) + 0 , _VertBuffer_COUNT );
+
+  Vert v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + nV * .2;//_Radius;
+  v1.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+  v1.nor = normalize(cross( nV , t1 ));
+  _VertBuffer[sID1] = v1; 
+
+  }
+
+   sID1 = safeID(hID * _NumVertsPerHair  + (_NumVertsPerHair-1) + 0 , _VertBuffer_COUNT );
+
+  v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + nV * .2;//_Radius;
+  v1.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+  v1.nor = normalize(cross( nV , t1 ));
+  _VertBuffer[sID1] = v1; 
+  
+  
+}
+
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void ForwardBasis (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+   float3 t;
+   float3 b;
+   float3 n;
+
+   int hID = pID;
+
+
+  float3 t0 = normalize(p2(1,hID)  - p2(0,hID));
+  float3 t0_0 = normalize(p2(2,hID) - p2(1,hID));
+
+  float3 dir = t0;
+  float3 tangent0 = -normalize( cross(t0 ,_CameraRight));
+
+  dir = normalize(cross( t0 , _CameraRight ));
+
+  //if( dot( t0 , _CameraUp ) < 0 ){ tangent0 *= -1; }
+
+  //v0 = normalize( cross(v0 , t0));
+  //setV(v0,0,hID);
+ 
+
+//for( int j = 0; j < _NumVertsPerHair-1; j++ ){
+  
+  int sID1 = safeID(hID * _NumVertsPerHair + 0 , _VertBuffer_COUNT );
+
+  Vert v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + tangent0 * r;//_Radius;
+  v1.tangent = tangent0;
+  v1.nor = dir;
+  _VertBuffer[sID1] = v1; 
+
+
+float3 nV;
+float3 t1;
+float3 t2;
+
+
+  for( int i =0; i < _NumVertsPerHair-2; i++ ){
+
+    t1 = normalize(p2(i+1,hID) * 100 - p2(i,hID)* 100);
+    t2 = normalize(p2(i+2,hID) * 100 - p2(i+1,hID) * 100);
+
+    //setT(t1,i);
+
+    b = cross(t1,t2);
+
+    
+
+    if( length(b)==0){
+        nV = getV2(i,hID);
+        //setV(nV,i+1,hID);
+    }else{
+
+
+      b=normalize(b);
+      float r = acos(dot(t2,t1));
+      nV = normalize(normalize(mul( rotationMatrix(normalize(b),r) , float4(getV2(i,hID),0)).xyz));
+      //setV( nV , i+1,hID);
+      //setV( normalize(cross( normalize(cross(nV,b)) , t1 )) , i+1);
+      //setV( normalize(cross( normalize(cross(nV,b)) , t1 )) , i+1);
+
+    }
+
+
+
+  int sID1 = safeID(hID * _NumVertsPerHair  + (i+1) + 0 , _VertBuffer_COUNT );
+
+  Vert v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + nV * .2;//_Radius;
+  v1.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+  v1.nor = normalize(cross( nV , t1 ));
+  _VertBuffer[sID1] = v1; 
+
+  }
+
+   sID1 = safeID(hID * _NumVertsPerHair  + (_NumVertsPerHair-1) + 0 , _VertBuffer_COUNT );
+
+  v1 = _VertBuffer[sID1];
+  //v1.pos = v1.pos + nV * .2;//_Radius;
+  v1.tangent = nV;//normalize(cross(nV,b));// cross( nV , dir);
+  v1.nor = normalize(cross( nV , t1 ));
+  _VertBuffer[sID1] = v1; 
+  
+  
+}
+
+
+

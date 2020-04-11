@@ -1,0 +1,182 @@
+﻿#pragma kernel Skin
+#pragma kernel SetLocation
+
+
+  struct Vert{
+
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tang;
+    float2 uv;
+  
+    float used;
+  
+   
+    float3 targetPos;
+    float3 bindPos;
+    float3 bindNor;
+    float3 bindTan;
+
+    float4 boneWeights;
+    float4 boneIDs;
+
+    float debug;
+
+  };
+
+
+struct Bone{
+  float4x4 transform;
+  float4x4 bindPose;
+};
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+#include "../Chunks/noise.cginc"
+#include "../Chunks/safeID.cginc"
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Bone> _SkeletonBuffer;
+
+
+float3 _EmittingPosition;
+float _Emitting;
+float _EmitTime;
+
+float _ReturnSpringStrength;
+float _Dampening;
+float _NoiseSize;
+float _NoiseSpeed;
+float _NoiseForce;
+float _Time;
+
+float3 _Hand1;
+float3 _Hand2;
+
+float _HandRepelRadius;
+float _HandRepelForce;
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Skin (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  Vert vert = _VertBuffer[safeID( pID ,_VertBuffer_COUNT )];
+
+  Bone b0 = _SkeletonBuffer[ safeID(int( vert.boneIDs[0]),_SkeletonBuffer_COUNT)];
+  Bone b1 = _SkeletonBuffer[ safeID(int( vert.boneIDs[1]),_SkeletonBuffer_COUNT)];
+  Bone b2 = _SkeletonBuffer[ safeID(int( vert.boneIDs[2]),_SkeletonBuffer_COUNT)];
+  Bone b3 = _SkeletonBuffer[ safeID(int( vert.boneIDs[3]),_SkeletonBuffer_COUNT)];
+
+  //float3 p0 =  mul(  b0.bindPose,float4( vert.bindPos , 1 ) ).xyz;
+
+  float4x4 m0 = mul(b0.transform,b0.bindPose);
+  float4x4 m1 = mul(b1.transform,b1.bindPose);
+  float4x4 m2 = mul(b2.transform,b2.bindPose);
+  float4x4 m3 = mul(b3.transform,b3.bindPose);
+  
+  float3 p0 = mul( m0 , float4( vert.bindPos , 1 ) ).xyz;
+  float3 p1 = mul( m1 , float4( vert.bindPos , 1 ) ).xyz;
+  float3 p2 = mul( m2 , float4( vert.bindPos , 1 ) ).xyz;
+  float3 p3 = mul( m3 , float4( vert.bindPos , 1 ) ).xyz;
+
+  float3 n0 = mul( m0 , float4( vert.bindNor , 0 ) ).xyz;
+  float3 n1 = mul( m1 , float4( vert.bindNor , 0 ) ).xyz;
+  float3 n2 = mul( m2 , float4( vert.bindNor , 0 ) ).xyz;
+  float3 n3 = mul( m3 , float4( vert.bindNor , 0 ) ).xyz;
+ 
+
+  float3 t0 = mul( m0 , float4( vert.bindTan , 0 ) ).xyz;
+  float3 t1 = mul( m1 , float4( vert.bindTan , 0 ) ).xyz;
+  float3 t2 = mul( m2 , float4( vert.bindTan , 0 ) ).xyz;
+  float3 t3 = mul( m3 , float4( vert.bindTan , 0 ) ).xyz;
+ 
+
+  float3 fPos  = p0 * vert.boneWeights[0];
+         fPos += p1 * vert.boneWeights[1];
+         fPos += p2 * vert.boneWeights[2];
+         fPos += p3 * vert.boneWeights[3];
+
+
+  float3 fNor  = n0 * vert.boneWeights[0];
+         fNor += n1 * vert.boneWeights[1];
+         fNor += n2 * vert.boneWeights[2];
+         fNor += n3 * vert.boneWeights[3];
+
+
+  float3 fTan  = t0 * vert.boneWeights[0];
+         fTan += t1 * vert.boneWeights[1];
+         fTan += t2 * vert.boneWeights[2];
+         fTan += t3 * vert.boneWeights[3];
+
+
+
+// FOR EXACT SKINNING ( NO FORCES)
+vert.pos = fPos;
+vert.nor = fNor;
+vert.tang = fTan;
+
+
+/*
+  FORCES!!!!!!
+*/
+/*
+
+float3 force = 0;
+
+float3 dif = fPos - vert.pos;
+force += dif * _ReturnSpringStrength;
+
+dif = vert.pos - _Hand1;
+force += _HandRepelForce * clamp( (_HandRepelRadius -  length(dif) ) / _HandRepelRadius , 0,1) * normalize(dif); 
+dif = vert.pos - _Hand2;
+force += _HandRepelForce * clamp( (_HandRepelRadius -  length(dif) ) / _HandRepelRadius , 0,1) * normalize(dif); 
+
+
+float3 noiseVal = fNor;
+force += noiseVal * _NoiseForce * ( -.5 + noise( vert.pos * _NoiseSize + float3( 0, _NoiseSpeed  * _Time,0)));
+
+
+float3 nonEmitForce = -(vert.pos - _EmittingPosition);
+
+float timeEmit = clamp(  (_Time -  _EmitTime) * .01 , 0 , 1);
+
+if( _Time -  _EmitTime < .01 && _Emitting == 1 ){
+  vert.pos = _EmittingPosition;
+}
+
+force = lerp( nonEmitForce * timeEmit , force * timeEmit , _Emitting );
+
+vert.vel += force;
+vert.vel *= _Dampening;
+
+
+vert.pos += vert.vel;
+*/
+
+
+vert.nor = normalize(fNor);
+vert.tang = fTan;
+
+vert.debug = 1;//float3( vert.boneWeights[0] , vert.boneWeights[1], vert.boneWeights[2] );
+
+  _VertBuffer[safeID(pID,_VertBuffer_COUNT)] = vert;
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void SetLocation (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  Vert vert = _VertBuffer[safeID(pID,_VertBuffer_COUNT)];
+  vert.pos = _EmittingPosition;
+
+  _VertBuffer[safeID(pID,_VertBuffer_COUNT)] = vert;
+
+}

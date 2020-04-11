@@ -1,0 +1,193 @@
+﻿#pragma kernel Flow
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+struct Transform {
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+
+struct Human {
+  float4x4 leftHand;
+  float4x4 rightHand;
+  float4x4 head;
+  float leftTrigger;
+  float rightTrigger;
+  float voice;
+  float debug;
+};
+
+RWStructuredBuffer<Human> _HumanBuffer;
+int _HumanBuffer_COUNT;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _FishBuffer;
+RWStructuredBuffer<Transform> _TransformBuffer;
+RWStructuredBuffer<Transform> _TransformFollowBuffer;
+
+float4x4 _Transform;
+float4x4 _Terrarium;
+float4x4 _SpacePup;
+
+float4x4 _FullWTL;
+float4x4 _FullLTW;
+float _FullScale;
+
+float _CurlSize;
+float _CurlSpeed;
+float _CurlForce;
+float _FlowSpeed;
+float _FollowForce;
+float _Dampening;
+
+float _SpacePupRadius;
+float _SpacePupForce;
+
+float _HumanDist;
+float _HumanForce;
+
+
+int _VertBuffer_COUNT;
+int _TransformBuffer_COUNT;
+int _FishBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/hash.cginc"
+#include "../Chunks/curlNoise.cginc"
+float sdBox( float3 p, float3 b )
+{
+  float3 d = abs(p) - b;
+  return length(max(d,0.0))
+         + min(max(d.x,max(d.y,d.z)),0.0); // remove this line for an only partially signed sdf 
+}
+
+float map( float3 pos ){
+    
+    float minDist = 100000;
+    
+    for( int i = 0; i < _TransformBuffer_COUNT; i++ ){
+      float3 newPos = mul( _TransformBuffer[i].worldToLocal , float4( pos ,1)).xyz;
+      float  dist = sdBox( newPos , float3(.6,.6,.6));
+      minDist = min( minDist ,dist);
+    }
+
+    return minDist;
+}
+
+float3 getNor( float3 pos ){
+  float3 eps = float3(.001 , 0, 0);
+
+  float3 nor = float3(
+      map( pos + eps.xyy ) - map( pos - eps.xyy),
+      map( pos + eps.yxy ) - map( pos - eps.yxy),
+      map( pos + eps.yyx ) - map( pos - eps.yyx)
+    );
+  return normalize( nor  * 1000 );
+}
+
+
+float3 HumanForces(float3 p){
+  float3 totalForce;
+  
+  for( int i = 0; i < _HumanBuffer_COUNT; i++ ){
+    Human h = _HumanBuffer[i];
+
+    float3 hL = mul(h.leftHand,float4(0,0,0,1));
+    float3 hR = mul(h.rightHand,float4(0,0,0,1));
+    float3 hH = mul(h.head,float4(0,0,0,1));
+
+    float3 d;
+
+    d = p - hL;
+
+    if( length( d ) < 1 && length( d ) > .01 ){ 
+      totalForce += normalize( d ) / length(d);
+    }
+
+
+     d = p - hR;
+    if( length( d ) < 1 && length( d ) > .01 ){ 
+      totalForce += normalize( d ) / length(d);
+    }
+  }
+
+  return totalForce * .001;
+}
+
+
+float _Time;
+float _DT;
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+  float scale = mul( _Transform,float4(0,1,0,0)).y;
+  float3 fPos = mul( _FullWTL,float4(vert.pos,1)).xyz;
+
+  if( vert.life <= .4 ){
+    fPos = mul( _Transform,float4(0,0,0,1)).xyz;
+    float3 up = mul( _Transform,float4(0,1,0,0));
+    float3 right = mul( _Transform,float4(1,0,0,0));
+    float3 back = mul( _Transform,float4(0,0,1,0));
+    fPos += 10*up   * ( hash(float(pID * 41)) - .5) * .16;//  * ( hash(float(pID * 31)) - .5) * .2;
+    fPos += 10*right * ( hash(float(pID * 11)) - .5) * .16;
+    fPos += 10*back  * ( hash(float(pID * 21)) - .5) * .16;
+
+    float3 v = float3( hash(float(pID * 20)),hash(float(pID * 42)),hash(float(pID * 32)));
+    v -= .5;
+
+    vert.axis = normalize( v);
+    float3 dir = normalize(mul( _Transform , float4(0,1,0,0)).xyz) * .1;
+    vert.vel = 0;// (v * 1 + dir) * .001;
+    vert.life = hash(float(pID)) * .5 + .5;
+    vert.pos = fPos;
+
+
+  }else{
+    
+    float3 force = 0;
+
+
+    float3 worldPos = mul(_TransformFollowBuffer[pID].localToWorld, float4(0,0,0,1)).xyz;
+     force += _FollowForce * (mul(_FullWTL,float4(worldPos,1)) - fPos);
+
+
+
+
+     force += curlNoise( fPos * _CurlSize + _Time * _CurlSpeed) * _CurlForce;
+    vert.vel += force * .9;
+
+    vert.vel = normalize( vert.vel) * _FlowSpeed;
+    fPos += vert.vel * _DT * 60;
+
+
+    vert.vel *= _Dampening;//* minDist;
+    //vert.life -= .0003;
+  vert.pos = mul(_FullLTW,float4(fPos,1));
+
+       if( length(vert.pos - worldPos) > 20){
+      vert.pos = worldPos;
+     }
+  }
+  
+ // vert.nor = mul(rotation(vert.axis,vert.life*20*(hash(float(pID*123)))+hash(float(pID * 23))),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}

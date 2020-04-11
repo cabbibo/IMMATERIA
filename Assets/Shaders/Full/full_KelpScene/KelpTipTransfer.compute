@@ -1,0 +1,91 @@
+﻿#pragma kernel Transfer
+
+struct Vert{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tangent;
+    float2 uv;
+    float2 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+RWStructuredBuffer<Vert> _HairBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+int _HairBuffer_COUNT;
+#include "../Chunks/safeID.cginc"
+
+float3 _CameraLeft;
+
+
+float3 _CameraRight;
+float3 _CameraUp;
+float3 _CameraForward;
+float _Radius;
+float _NumVertsPerHair;
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 8;
+
+
+    Vert p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+    Vert h = _HairBuffer[safeID(particleID*6+4 ,_HairBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int baseOrTop = (pID%8) / 4;
+
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+
+      float3 fPos;
+
+
+
+    if( baseOrTop == 0 ){
+        float3 l = _CameraRight;normalize(cross(p.nor,float3(0,1,0)));
+        float3 u = _CameraUp;//normalize(cross(p.nor,l));
+
+        l *= (float(col)-.5);
+        u *= (float(row)-.5);
+
+         fPos = p.pos + (l + u) *  _Radius* h.debug.x - _CameraForward* .02;
+    }else{
+
+          float3 n = p.pos - h.pos;
+
+          float3 u = n;
+          float3 l = cross( n , _CameraForward );
+
+
+        l *= (float(col)-.5);
+        u *= (float(row));
+
+        fPos = p.pos +  (l * _Radius * .5 *  (1-float(row) + .2) - u);// *  _Radius;
+    }
+
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    int sID = safeID(pID,_VertBuffer_COUNT);
+    Vert v = _VertBuffer[sID];
+
+
+   v.pos = fPos;
+   v.vel = p.vel;
+   v.uv = fUV;
+   v.nor = p.nor;
+   v.debug = float2( baseOrTop , p.debug.y );
+
+   _VertBuffer[sID] = v;
+
+}

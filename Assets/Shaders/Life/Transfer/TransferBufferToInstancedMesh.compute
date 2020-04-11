@@ -1,0 +1,137 @@
+﻿#pragma kernel Transfer
+#pragma kernel Gooey
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float2 debug;
+};
+
+
+
+struct Transform {
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _BaseBuffer;
+RWStructuredBuffer<Vert> _SharkBuffer;
+RWStructuredBuffer<Transform> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+int _SharkBuffer_COUNT;
+int _BaseBuffer_COUNT;
+
+
+int _VertsPerMesh;
+
+float _DT;
+
+
+float4x4 _FullWTL;
+float4x4 _FullLTW;
+float    _FullScale;
+
+#include "../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+
+  if( pID < _VertBuffer_COUNT ){
+    
+    Vert b = _BaseBuffer[safeID(pID %_VertsPerMesh , _BaseBuffer_COUNT )];
+    Transform p = _SkeletonBuffer[safeID( pID / _VertsPerMesh , _SkeletonBuffer_COUNT )];
+
+    _VertBuffer[sID].pos      = mul( p.localToWorld , float4( b.pos , 1));// = v;
+    _VertBuffer[sID].nor      = normalize(mul( p.localToWorld , float4( b.nor , 0)));
+    _VertBuffer[sID].tangent  = normalize(mul( p.localToWorld , float4( b.tangent , 0)));;
+    _VertBuffer[sID].uv       = b.uv;
+
+
+  }
+
+}
+
+float _Dampening;
+float _ReturnStrength;
+float _SharkDisplacementForce;
+float _SharkDisplacementRadius;
+
+#include "../Chunks/humanForces.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Gooey (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+
+  if( pID < _VertBuffer_COUNT ){
+
+
+    
+    Vert b = _BaseBuffer[safeID(pID %_VertsPerMesh , _BaseBuffer_COUNT )];
+    Transform p = _SkeletonBuffer[safeID( pID / _VertsPerMesh , _SkeletonBuffer_COUNT )];
+
+    // getting scale
+    float scale = length(mul(p.localToWorld,float4(1,0,0,0)).xyx);
+
+    Vert v = _VertBuffer[sID];
+    float3 tPos = mul( p.localToWorld , float4( b.pos , 1));
+
+    float3 force  = 0;
+
+
+
+    force += (tPos - v.pos) * _ReturnStrength * scale;
+
+    for( int i = 0; i < _SharkBuffer_COUNT; i++ ){
+
+      Vert shark = _SharkBuffer[ i ];
+
+      float3 dif = shark.pos - v.pos;
+
+      if( length(dif) < _SharkDisplacementRadius * scale ){
+        force -= _SharkDisplacementForce * scale * normalize(shark.pos - v.pos)  * (_SharkDisplacementRadius * scale-length(dif));
+      }
+      
+    }
+
+    force += mul(_FullLTW, float4(HumanRayForces(v.pos),0) ).xyz; 
+
+
+    v.vel += force;
+    v.pos  += v.vel * ( _DT * 60);
+    v.vel *= _Dampening;
+
+    //v.pos = tPos;
+
+
+
+    v.nor      = normalize(mul( p.localToWorld , float4( b.nor , 0)));
+    v.tangent  = normalize(mul( p.localToWorld , float4( b.tangent , 0)));;
+    v.uv       = b.uv;
+
+
+
+    _VertBuffer[sID] = v;
+
+
+  }
+
+}

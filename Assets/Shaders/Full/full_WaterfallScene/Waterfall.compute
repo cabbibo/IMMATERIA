@@ -1,0 +1,165 @@
+﻿#pragma kernel Flow
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+struct Transform {
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+//RWStructuredBuffer<Transform> _TransformBuffer;
+
+float4x4 _Transform;
+float4x4 _Terrarium;
+float4x4 _FullWTL;
+float4x4 _FullLTW;
+
+float _FullScale;
+
+float _CurlSize;
+float _CurlSpeed;
+float _CurlForce;
+float _FlowSpeed;
+
+float _LifeReduceSpeed;
+
+
+int _VertBuffer_COUNT;
+//int _TransformBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/hash.cginc"
+#include "../Chunks/curlNoise.cginc"
+#include "../Chunks/humanForces.cginc"
+
+float sdBox( float3 p, float3 b )
+{
+  float3 d = abs(p) - b;
+  return length(max(d,0.0))
+         + min(max(d.x,max(d.y,d.z)),0.0); // remove this line for an only partially signed sdf 
+}
+
+/*
+
+float map( float3 pos ){
+    
+    float minDist = 100000;
+    
+    for( int i = 0; i < _TransformBuffer_COUNT; i++ ){
+      float3 newPos = mul( _TransformBuffer[i].worldToLocal , float4( pos ,1)).xyz;
+      float  dist = sdBox( newPos , float3(.6,.6,.6));
+      minDist = min( minDist ,dist);
+    }
+
+    return minDist;
+}
+
+float3 getNor( float3 pos ){
+  float3 eps = float3(.001 , 0, 0);
+
+  float3 nor = float3(
+      map( pos + eps.xyy ) - map( pos - eps.xyy),
+      map( pos + eps.yxy ) - map( pos - eps.yxy),
+      map( pos + eps.yyx ) - map( pos - eps.yyx)
+    );
+  return normalize( nor  * 1000 );
+}
+*/
+
+float _Time;
+float _DT;
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+  float scale = mul( _Transform,float4(0,1,0,0)).y;
+  float3 fPos = mul(_FullWTL,float4(vert.pos,1));
+
+  if( vert.life <= 0 || vert.life > 1){
+    fPos = mul( _Transform,float4(0,0,0,1)).xyz;
+    float3 up = mul( _Transform,float4(0,1,0,0));
+    float3 right = mul( _Transform,float4(1,0,0,0));
+    float3 back = mul( _Transform,float4(0,0,1,0));
+    //fPos += 10*up   * ( hash(float(pID * 41)) - .5) * .16;//  * ( hash(float(pID * 31)) - .5) * .2;
+    fPos += 10*right * ( hash(float(pID * 11)) - .5) * .16;
+    fPos += 10*back  * ( hash(float(pID * 21)) - .5) * .16;
+
+    float3 v = float3( hash(float(pID * 20)),hash(float(pID * 42)),hash(float(pID * 32)));
+    v -= .5;
+
+    vert.axis = normalize( v);
+    float3 dir = normalize(mul( _Transform , float4(0,1,0,0)).xyz) * .1;
+    vert.vel = 0;// (v * 1 + dir) * .001;
+    vert.life = 1;//hash(float(pID)) * .5 + .5;
+    vert.pos = fPos;
+  }else{
+    float3 force = 0;
+
+    force += float3(0,-.0008,0);
+
+    //force += normalize(mul( _Transform , float4(0,1,0,0)).xyz) * .0003;
+    force += curlNoise( fPos * 10   ) * .0004;
+
+    force += HumanRayForces( vert.pos );
+
+
+float3 terrarium = mul( _Terrarium , float4( vert.pos,1)).xyz;
+    
+ float m = -sdBox( mul( _Terrarium , float4( vert.pos,1)).xyz , float3(.43  ,.43,.43));
+
+   float3 eps = float3(.1 , 0, 0);
+
+   float3 boxSize = float3(.43,.43,.43);
+  float3 nor2 = float3(
+      sdBox( mul( _Terrarium , float4( vert.pos + eps.xyy ,1)).xyz , boxSize) - sdBox( mul( _Terrarium , float4( vert.pos- eps.xyy ,1)).xyz , boxSize),
+      sdBox( mul( _Terrarium , float4( vert.pos + eps.yxy ,1)).xyz , boxSize) - sdBox( mul( _Terrarium , float4( vert.pos- eps.yxy ,1)).xyz , boxSize),
+      sdBox( mul( _Terrarium , float4( vert.pos + eps.yyx ,1)).xyz , boxSize) - sdBox( mul( _Terrarium , float4( vert.pos- eps.yyx ,1)).xyz , boxSize)
+    );
+
+nor2 = normalize( nor2 );
+  m = m/_FullScale;
+ // nor2 = normalize(terrarium);//normalize(mul(_FullWTL,float4(terrarium,0)));
+
+  if( m < 0 ){ force += .3*m *nor2; }//*nor2; }
+//  if( m < 0.1 ){ force += m; }//*nor2; }
+
+    if( length(force)> 1 ){ force = normalize(force) * 1;}
+    if( length(vert.vel)> 1 ){ vert.vel = normalize(vert.vel) * 1;}
+    
+    vert.vel += force * .9;
+
+    //vert.vel = normalize( vert.vel);// * _FlowSpeed;
+    
+
+    fPos += vert.vel * _DT*60;
+
+
+
+
+    vert.vel *= .8;//* minDist;
+    vert.life -= .003 * (hash(float(pID)) * .5 + .5);//_LifeReduceSpeed;
+
+    vert.pos = mul(_FullLTW,float4(fPos,1)).xyz;
+  }
+  
+ // vert.nor = mul(rotation(vert.axis,vert.life*20*(hash(float(pID*123)))+hash(float(pID * 23))),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}

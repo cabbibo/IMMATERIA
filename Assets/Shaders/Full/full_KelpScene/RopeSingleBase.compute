@@ -1,0 +1,409 @@
+﻿#pragma kernel Set
+#pragma kernel Collision
+#pragma kernel CollisionVoice
+#pragma kernel Constraint
+
+#include "../Chunks/noise.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/curlNoise.cginc"
+
+
+
+float4x4 transform; 
+
+float _Delta;
+float _Time;
+uint _Pass;
+float _SpringDistance;
+
+uint _NumVertsPerHair;
+uint _HairsPerPoint;
+float _BunchOutForce;
+float _HairLength;
+float _UpForce;
+float _HairVariance;
+
+
+
+struct Vert{
+  float3 pos;
+  float3 oPos;
+  float3 nor;
+  float3 tang;
+  float2 uv;
+  float2 debug;
+};
+
+struct Base{
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+float _NormalForce;
+float _NoiseForce;
+float _NoiseSpeed;
+float _NoiseSize;
+float _Dampening;
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Base> _BaseBuffer;
+
+uint _VertBuffer_COUNT;
+uint _BaseBuffer_COUNT;
+
+
+#include "../Chunks/safeID.cginc"
+
+float3 getVel( float3 p1 , float3 p2 ){
+
+  float3 v = p1 - p2;
+
+  if( length( v ) > .5){ v = normalize( v ) *.5; }
+  return v;
+  
+}
+
+float3 springForce( float3 p1 , float3 p2 , float sl ){
+  float3 dif = p1 - p2;
+  float l = length(dif);
+
+  if( l > 0 ){
+    float d = l - sl;
+    return normalize( dif ) * d;
+  }else{
+    return float3(0,0,0);
+  }
+
+}
+
+
+/* 
+
+ROPPPEEE STTUFFFFf
+
+*/
+
+
+#define NR_THREADS 128
+
+[numthreads(NR_THREADS,1,1)]
+void Set (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+  uint bID = pID / _NumVertsPerHair;
+
+  if( pID < _VertBuffer_COUNT && bID < _BaseBuffer_COUNT ){
+
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    Vert vert = _VertBuffer[pID];
+
+    Base base1 = _BaseBuffer[safeID( bID  , _BaseBuffer_COUNT )];
+
+    float3 bP1 = mul( base1.localToWorld , float4(0,0,0,1)).xyz;//bP1;//mul( transform,  float4(base.pos,1)).xyz;
+     
+    float3 bN1 = normalize(mul( base1.localToWorld , float4(0,1,0,0)).xyz);//base1.pos;//mul( transform,  float4(base.pos,1)).xyz;
+    
+    float3 s = float3(1,1,1);//mul( transform , float4(1,1,1,0)).xyz;
+
+    float l = float(pID % _NumVertsPerHair ) / float(_NumVertsPerHair);
+    //vert.pos  = bP1 + (bP2 - bP1 ) * l; // *(length(s)/3)* _HairLength;
+    vert.uv = float2( l , float(bID)/float(_BaseBuffer_COUNT));
+    //vert.oPos = vert.pos;//base.pos + base.nor * l + _HairLength;
+
+    vert.debug.x = _HairLength;//((sin(float(bID)*10000)+ _HairVariance) / _HairVariance ) * _HairLength;
+
+    _VertBuffer[pID] = vert;
+
+  }
+  
+}
+
+
+
+
+
+float _Gravity;
+
+[numthreads(NR_THREADS,1,1)]
+void Collision (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+  //int pID = id.x + id.y * gridX + id.z * gridX * gridY;
+
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+  uint bID = pID / _NumVertsPerHair;
+  if( pID < _VertBuffer_COUNT && bID < _BaseBuffer_COUNT ){
+
+
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    bID = safeID( bID , _BaseBuffer_COUNT );
+    
+    Vert vert = _VertBuffer[pID];
+
+    Base base1 = _BaseBuffer[bID];
+
+    float3 bP1 = mul( base1.localToWorld , float4(0,0,0,1)).xyz;
+    float3 bN1 = normalize(mul( base1.localToWorld , float4(0,0,1,0)).xyz);
+
+
+
+    float3 force = float3(0,-1,0);//bN * _NormalForce;//float3( 0 , base.nor , 0.0 );
+  
+
+    force += bN1 * 3 * (1-vert.uv.x);
+   // force += HumanRayForces( vert.pos );
+    //force += curlNoise( vert.pos + _Time ) * 1;
+    // Inertia: objects in motion stay in motion.
+    float3 vel = getVel( vert.pos , vert.oPos);
+
+    if( length( force ) > 10 ){
+      force = normalize(force) * 10;
+    }
+ 
+
+    bool tb = false;
+
+    if( length(vert.pos) == 0 ){
+      vert.pos  =  bP1 +  vert.uv.x;// vert.uv.x * vert.debug.x;
+      vert.oPos = vert.pos;
+      tb = true;
+    }
+
+    if( length(vert.pos.x) == 1000 ){
+      vert.pos  =  bP1  + vert.uv.x;//bP + bN * vert.uv.x * vert.debug.x;
+      vert.oPos = vert.pos;
+      tb = true;
+    }
+
+    // If we are at the bottom, 
+    if( vert.uv.x == 0 ){ 
+
+      Vert v2 = _VertBuffer[ safeID( pID + 1 , _VertBuffer_COUNT )];
+      vert.pos = bP1; 
+      vert.oPos = bP1;
+      tb = true;
+      vert.nor = -normalize(vert.pos - v2.pos);;
+
+    // We are at the top
+    }else{
+
+       Vert vDown = _VertBuffer[ safeID( pID - 1 , _VertBuffer_COUNT )];
+       vert.nor = normalize(vert.pos - vDown.pos);
+
+
+
+    }
+
+    //vert.pos = bP2;
+
+   // vert.pos = bP1 + (bP2-bP1) * vert.uv.x;
+
+    vert.tang = normalize( cross( vert.nor , float3(0,0,1) ) ) ;
+    
+
+    //vert.nor = normalize(vert.pos - vert.oPos);
+
+    if( _Delta  < .1 && tb == false ){
+
+      float dampening =.98;//_Dampening;//.99999;// - vert.life * .01;
+      float3 next = vert.pos + vel * dampening + force  * .0001;//* _Delta * _Delta;
+
+      vert.oPos = vert.pos;
+      vert.pos = next;
+
+    }
+
+    _VertBuffer[pID] = vert;
+  }
+
+  
+ 
+
+
+
+}
+
+
+
+float _Voice;
+
+
+[numthreads(NR_THREADS,1,1)]
+void CollisionVoice(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+  //int pID = id.x + id.y * gridX + id.z * gridX * gridY;
+
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+  uint bID = pID / _NumVertsPerHair;
+  if( pID < _VertBuffer_COUNT && bID < _BaseBuffer_COUNT ){
+
+
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    bID = safeID( bID , _BaseBuffer_COUNT );
+    
+    Vert vert = _VertBuffer[pID];
+
+    Base base1 = _BaseBuffer[bID];
+
+    float3 bP1 = mul( base1.localToWorld , float4(0,0,0,1)).xyz;
+    float3 bN1 = normalize(mul( base1.localToWorld , float4(0,0,1,0)).xyz);
+
+
+
+    float3 force = float3(0,-1,0) * _Voice;//bN * _NormalForce;//float3( 0 , base.nor , 0.0 );
+  
+
+    force += bN1 * 20 *  vert.uv.x * 2 * _Voice;
+    force += bN1 * 10 * _Voice;
+    force += curlNoise(vert.pos * 10 ) * 20 * _Voice;
+   // force += HumanRayForces( vert.pos );
+    //force += curlNoise( vert.pos + _Time ) * 1;
+    // Inertia: objects in motion stay in motion.
+    float3 vel = getVel( vert.pos , vert.oPos);
+
+    if( length( force ) > 10 ){
+      force = normalize(force) * 10;
+    }
+ 
+
+    bool tb = false;
+
+    if( length(vert.pos) == 0 ){
+      vert.pos  =  bP1 +  vert.uv.x;// vert.uv.x * vert.debug.x;
+      vert.oPos = vert.pos;
+      tb = true;
+    }
+
+    if( length(vert.pos.x) == 1000 ){
+      vert.pos  =  bP1  + vert.uv.x;//bP + bN * vert.uv.x * vert.debug.x;
+      vert.oPos = vert.pos;
+      tb = true;
+    }
+
+    // If we are at the bottom, 
+    if( vert.uv.x == 0 ){ 
+
+      Vert v2 = _VertBuffer[ safeID( pID + 1 , _VertBuffer_COUNT )];
+      vert.pos = bP1; 
+      vert.oPos = bP1;
+      tb = true;
+      vert.nor = -normalize(vert.pos - v2.pos);;
+
+    // We are at the top
+    }else{
+
+       Vert vDown = _VertBuffer[ safeID( pID - 1 , _VertBuffer_COUNT )];
+       vert.nor = normalize(vert.pos - vDown.pos);
+
+
+
+    }
+
+    //vert.pos = bP2;
+
+   // vert.pos = bP1 + (bP2-bP1) * vert.uv.x;
+
+    vert.tang = normalize( cross( vert.nor , float3(0,0,1) ) ) ;
+    
+
+    //vert.nor = normalize(vert.pos - vert.oPos);
+
+    if( _Delta  < .1 && tb == false ){
+
+      float dampening =.9;//_Dampening;//.99999;// - vert.life * .01;
+      float3 next = vert.pos + vel * dampening + force  * .0001;//* _Delta * _Delta;
+
+      vert.oPos = vert.pos;
+      vert.pos = next;
+
+    }
+
+    _VertBuffer[pID] = vert;
+  }
+
+  
+ 
+
+
+
+}
+
+
+
+
+
+[numthreads(NR_THREADS,1,1)]
+void Constraint(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+  
+  // Get the id using thread / group indices
+  uint pID = threadID + u3GroupID.x * NR_THREADS ;
+
+  // Since we are doing 2 passes for verlet, multiply by 2 
+  // to get both the vertices!
+  pID = pID * 2;
+  pID = pID + _Pass;
+
+
+//float3 s = length(mul( transform , float4(1,1,1,0)).xyz)/3;
+  if( pID < uint(_VertBuffer_COUNT) ){
+
+    pID = uint(safeID(pID,_VertBuffer_COUNT));
+    int pUp = uint(safeID(pID+1,_VertBuffer_COUNT));
+    Vert v1 = _VertBuffer[pID];
+
+    // If we are are the end of the hair, no need to do verlet
+    if( v1.uv.x <= 1-(2/ float(_NumVertsPerHair)) ){
+      
+      Vert v2 = _VertBuffer[pUp];
+
+      float3 dif = v1.pos - v2.pos;
+
+      float l = length( dif );// * ((4+n)/4);
+
+      float difference = 0;
+      
+      // We want to make sure that l isn't zero, 
+      // or we will get some NaNs
+     // We want to make sure that l isn't zero, 
+      // or we will get some NaNs
+      if( l > 0.001 ){
+        difference = ((_HairLength/float(_NumVertsPerHair))-l)/l;//((s*v1.debug.x/float(_NumVertsPerHair)) - l ) / l;
+      }
+
+      // Here is where the actual verlet goes down!
+      float3 translate = dif * .6 * difference;
+      
+      float3 t1 = 1 * translate;
+      float3 t2 = 1 * translate;
+      
+      float3 n1 = v1.pos + t1;
+      float3 n2 = v2.pos - t2;
+
+       if( v1.uv.x == 0 ){
+        v1.pos = v1.pos;
+        v2.pos = n2 - t2;
+      }else{
+        // move towards
+        v1.pos = n1;
+        v2.pos = n2;
+      }
+              // Set both the values in the proper buffer location!
+      
+      _VertBuffer[ pID ] = v1;
+      _VertBuffer[ pUp ] = v2;
+
+
+
+    }
+
+
+
+  }
+
+
+
+}

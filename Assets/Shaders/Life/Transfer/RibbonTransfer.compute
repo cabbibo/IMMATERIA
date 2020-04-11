@@ -1,0 +1,322 @@
+﻿#pragma kernel Transfer
+#pragma kernel TrailTransfer
+#pragma kernel LineTransfer
+
+struct Vert{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tangent;
+    float2 uv;
+    float2 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+
+
+int _NumVertsPerHair;
+int _RibbonLength;
+float _Radius;
+float3 _CameraForward;
+float3 _CameraRight;
+float3 _CameraUp;
+
+#include "../Chunks/cubicCurve.cginc"
+#include "../Chunks/safeID.cginc"
+
+#include "../Chunks/terrainCompute.cginc"
+
+
+
+float3 cubicDerivative (float t, float3 a, float3 b, float3 c, float3 d) {
+  a = 3*(b-a);
+  b = 3*(c-b);
+  c = 3*(d-c);
+  return a * pow((1-t),2) + 2 * b * (1-t) * t + c * pow(t,2);
+}
+
+float3 cubicFromValue( in float val , in int particleID, out float3 upPos , out float3 doPos , out float3 tang, out float3 nor){
+
+  Vert p0;
+  Vert p1;
+  Vert p2;
+
+  Vert pMinus;
+  
+
+  float3 v0 = float3( 0. , 0. , 0. );
+  float3 v1 = float3( 0. , 0. , 0. );
+
+  float3 t0 = float3( 0. , 0. , 0. );
+  float3 t1 = float3( 0. , 0. , 0. );
+
+  float3 n0 = float3( 0. , 0. , 0. );
+  float3 n1 = float3( 0. , 0. , 0. );
+
+
+
+  float vPP = float(_NumVertsPerHair);
+
+  float base = val * (vPP-1);
+
+  int baseUp   = floor( base );
+  int baseDown = ceil( base );
+  float amount = base - float(baseUp);
+
+
+  int bladeBase = (_NumVertsPerHair) * particleID;
+
+  if( baseUp == 0 ){
+
+    p0 = _SkeletonBuffer[ safeID( baseUp       + bladeBase , _SkeletonBuffer_COUNT) ];
+    p1 = _SkeletonBuffer[ safeID( baseDown     + bladeBase , _SkeletonBuffer_COUNT) ];
+    p2 = _SkeletonBuffer[ safeID( baseDown + 1 + bladeBase , _SkeletonBuffer_COUNT) ];
+
+    v1 = .5 * ( p2.pos - p0.pos );
+    t1 = .5 * ( p2.tangent - p0.tangent );
+    n1 = .5 * ( p2.nor - p0.nor );
+
+  }else if( baseDown == vPP-1 ){
+
+    p0 = _SkeletonBuffer[ safeID( baseUp     + bladeBase , _SkeletonBuffer_COUNT) ];
+    p1 = _SkeletonBuffer[ safeID( baseDown   + bladeBase , _SkeletonBuffer_COUNT) ];
+    p2 = _SkeletonBuffer[ safeID( baseUp - 1 + bladeBase , _SkeletonBuffer_COUNT) ];
+
+    v0 = .5 * ( p1.pos - p2.pos );
+    t0 = .5 * ( p1.tangent - p2.tangent );
+    n0 = .5 * ( p1.nor - p2.nor );
+
+
+  }else{
+
+    p0 = _SkeletonBuffer[ safeID( baseUp   + bladeBase , _SkeletonBuffer_COUNT) ];
+    p1 = _SkeletonBuffer[ safeID( baseDown + bladeBase , _SkeletonBuffer_COUNT) ];
+
+    pMinus = _SkeletonBuffer[ safeID( baseUp   - 1 + bladeBase, _SkeletonBuffer_COUNT) ];
+    p2 =     _SkeletonBuffer[ safeID( baseDown + 1 + bladeBase, _SkeletonBuffer_COUNT) ];
+
+    v1 = .5 * ( p2.pos - p0.pos );
+    v0 = .5 * ( p1.pos - pMinus.pos );
+
+
+    t1 = .5 * ( p2.tangent - p0.tangent );
+    t0 = .5 * ( p1.tangent - pMinus.tangent );
+
+    n1 = .5 * ( p2.nor - p0.nor );
+    n0 = .5 * ( p1.nor - pMinus.nor );
+
+  }
+
+  float3 c0 = p0.pos;
+  float3 c1 = p0.pos + v0/3.;
+  float3 c2 = p1.pos - v1/3.;
+  float3 c3 = p1.pos;
+
+
+
+  float3 tan0 = p0.tangent;
+  float3 tan1 = p0.tangent + t0/3.;
+  float3 tan2 = p1.tangent - t1/3.;
+  float3 tan3 = p1.tangent;
+
+
+
+  float3 nor0 = p0.nor;
+  float3 nor1 = p0.nor + n0/3.;
+  float3 nor2 = p1.nor - n1/3.;
+  float3 nor3 = p1.nor;
+
+  float3 pos = cubicCurve( amount , c0 , c1 , c2 , c3 );
+
+  upPos = cubicCurve( amount  + .01 , c0 , c1 , c2 , c3 );
+  doPos = cubicCurve( amount  - .01 , c0 , c1 , c2 , c3 );
+
+  tang = cubicCurve( amount , tan0 , tan1 , tan2 , tan3  );
+  nor = cubicCurve( amount , nor0 , nor1 , nor2 , nor3  );
+
+  return pos;
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / ( _RibbonLength * 2);
+
+    int idInTube = pID % ( _RibbonLength * 2);
+    int row = idInTube / 2;
+    int col = pID % 2;
+    Vert baseParticle  = _SkeletonBuffer[ safeID(particleID * _NumVertsPerHair, _SkeletonBuffer_COUNT) ];
+    float rowVal = float(row) / float(_RibbonLength);
+    float colVal =  (float(col)/float(2)) ;
+
+    float3 upPos; float3 doPos;
+    float3 upTang; float3 doTang;
+    float3 tang;
+    float3 nor;
+
+    float3 pos = cubicFromValue( rowVal , particleID , upPos , doPos , tang , nor  );
+
+    float3 d = normalize(upPos - pos);
+    float3 x = normalize(cross( d , _CameraRight) );
+    float3 y = normalize(cross( x , d));
+
+    float angle = colVal * 2*3.14159;
+
+//float4 vals = _HeightMap.SampleLevel(sampler_HeightMap, (baseParticle.pos.xz-.5) * _MapSize  , 0);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+        
+    float r =   baseParticle.debug.x * .08;
+    //if( baseParticle.debug.x < .1 ){ r = 0;}
+
+    float3 outVec = (sin(angle) *x - cos(angle) * y);// * r;
+    float3 fPos = pos + outVec * r;
+
+    float2 fUV = float2( float(row+1)/_RibbonLength , colVal*2 );
+    float3 fNor = normalize( outVec );
+    float3 fTan = normalize(cross(fNor,d));
+
+        //if( baseParticle.debug.x < 1 ){ fPos  = 0;}
+    
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.nor = fNor;
+    v.uv = fUV;
+    v.vel = fPos - v.pos;
+    v.tangent = fTan;
+    v.debug = float2(float(particleID),baseParticle.debug.x);
+    v.pos = fPos;
+    _VertBuffer[sID] = v;
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void TrailTransfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / ( _RibbonLength * 2);
+
+    int idInTube = pID % ( _RibbonLength * 2);
+    int row = idInTube / 2;
+    int col = pID % 2;
+    Vert baseParticle  = _SkeletonBuffer[ safeID(particleID * _NumVertsPerHair, _SkeletonBuffer_COUNT) ];
+    Vert tipParticle  = _SkeletonBuffer[ safeID(particleID * _NumVertsPerHair + _NumVertsPerHair-1, _SkeletonBuffer_COUNT) ];
+    float rowVal = float(row) / float(_RibbonLength);
+    float colVal =  (float(col)/float(2)) ;
+
+    float3 upPos; float3 doPos;
+    float3 upTang; float3 doTang;
+    float3 tang;
+    float3 nor;
+
+
+   
+    float3 pos = cubicFromValue( rowVal , particleID , upPos , doPos , tang , nor  );
+
+    float3 d = normalize(pos - doPos );
+    float3 x = normalize(cross( d , _CameraRight) );
+    float3 y = normalize(cross( x , d));
+
+    float angle = colVal * 2*3.14159;
+
+//float4 vals = _HeightMap.SampleLevel(sampler_HeightMap, (baseParticle.pos.xz-.5) * _MapSize  , 0);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+    float l = 1 - saturate( baseParticle.debug.y ) ;
+    //float r =   _Radius  *  saturate(min( rowVal * 4,1-rowVal ))*saturate( min( l * 10 , 1-l)) ;
+    float r =   _Radius  * saturate( min( l * 4 , 1-l)) ;
+
+    //if( baseParticle.debug.x < .1 ){ r = 0;}
+
+    float3 outVec = (sin(angle) *x - cos(angle) * y);// * r;
+    float3 fPos = pos + outVec * r;
+
+    float2 fUV = float2( float(row+1)/_RibbonLength , colVal*2 );
+    float3 fNor = x;//normalize( outVec );
+    float3 fTan = normalize(cross(fNor,d));
+
+        //if( baseParticle.debug.x < 1 ){ fPos  = 0;}
+    
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.nor = fNor;
+    v.uv = fUV;
+    v.vel = fPos - v.pos;
+    v.tangent = fTan;
+    v.debug = float2(float(particleID),baseParticle.debug.y);
+    v.pos = fPos;
+    _VertBuffer[sID] = v;
+
+}
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void LineTransfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / ( _RibbonLength * 2);
+
+    int idInTube = pID % ( _RibbonLength * 2);
+    int row = idInTube / 2;
+    int col = pID % 2;
+    Vert baseParticle  = _SkeletonBuffer[ safeID(particleID * _NumVertsPerHair, _SkeletonBuffer_COUNT) ];
+    Vert tipParticle  = _SkeletonBuffer[ safeID(particleID * _NumVertsPerHair + _NumVertsPerHair-1, _SkeletonBuffer_COUNT) ];
+    float rowVal = float(row) / float(_RibbonLength);
+    float colVal =  (float(col)/float(2)) ;
+
+    float3 upPos; float3 doPos;
+    float3 upTang; float3 doTang;
+    float3 tang;
+    float3 nor;
+
+
+   
+    float3 pos = cubicFromValue( rowVal , particleID , upPos , doPos , tang ,nor  );
+
+   
+   
+//float4 vals = _HeightMap.SampleLevel(sampler_HeightMap, (baseParticle.pos.xz-.5) * _MapSize  , 0);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+   
+    float3 fPos = pos;
+
+    pos += normalize(nor) * ((float(pID)%2)-.5) * _Radius;// * _Radius;
+
+    float2 fUV = float2( float(row+1)/_RibbonLength , colVal*2 );
+
+        //if( baseParticle.debug.x < 1 ){ fPos  = 0;}
+    
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.uv = fUV;
+    v.vel = pos - v.pos;
+    v.debug = float2(float(particleID),baseParticle.debug.y);
+    v.pos = pos;
+    v.nor = normalize(nor);//normalize(tang);
+    v.tangent = normalize(tang);//nor;// * ((float(pID)%2)-.5); //-normalize(cross(nor,tang));
+    _VertBuffer[sID] = v;
+
+}

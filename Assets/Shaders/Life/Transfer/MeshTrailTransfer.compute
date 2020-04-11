@@ -1,0 +1,367 @@
+﻿
+#pragma kernel Transfer
+#pragma kernel PerTrailTransfer
+#pragma kernel HeadTransfer
+
+struct Vert{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tangent;
+    float2 uv;
+    float2 debug;
+};
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _BaseBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+
+int _BaseBuffer_COUNT;
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+
+
+int _NumVertsPerTrail;
+int _NumVertsPerMesh;
+
+float _Radius;
+int _Direction;
+
+float _ModelLength;
+
+float3 _CameraForward;
+float3 _CameraRight;
+float3 _CameraUp;
+
+
+float _FullScale;
+
+#include "../Chunks/cubicCurve.cginc"
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/hash.cginc"
+
+
+
+float3 cubicFromValue( in float val , in int trailID, out float3 upPos , out float3 doPos , out float3 tang, out float3 nor){
+
+  Vert p0;
+  Vert p1;
+  Vert p2;
+
+  Vert pMinus;
+  
+
+  float3 v0 = float3( 0. , 0. , 0. );
+  float3 v1 = float3( 0. , 0. , 0. );
+
+  float3 t0 = float3( 0. , 0. , 0. );
+  float3 t1 = float3( 0. , 0. , 0. );
+
+  float3 n0 = float3( 0. , 0. , 0. );
+  float3 n1 = float3( 0. , 0. , 0. );
+
+
+
+  float vPP = float(_NumVertsPerTrail);
+
+  float base = val * (vPP-1);
+
+  int baseUp   = floor( base );
+  int baseDown = ceil( base );
+  float amount = base - float(baseUp);
+
+
+  int bladeBase = (_NumVertsPerTrail) * trailID;
+
+  if( baseUp == 0 ){
+
+    p0 = _SkeletonBuffer[ safeID( baseUp       + bladeBase , _SkeletonBuffer_COUNT) ];
+    p1 = _SkeletonBuffer[ safeID( baseDown     + bladeBase , _SkeletonBuffer_COUNT) ];
+    p2 = _SkeletonBuffer[ safeID( baseDown + 1 + bladeBase , _SkeletonBuffer_COUNT) ];
+
+    v1 = .5 * ( p2.pos - p0.pos );
+    t1 = .5 * ( p2.tangent - p0.tangent );
+    n1 = .5 * ( p2.nor - p0.nor );
+
+  }else if( baseDown == vPP-1 ){
+
+    p0 = _SkeletonBuffer[ safeID( baseUp     + bladeBase , _SkeletonBuffer_COUNT) ];
+    p1 = _SkeletonBuffer[ safeID( baseDown   + bladeBase , _SkeletonBuffer_COUNT) ];
+    p2 = _SkeletonBuffer[ safeID( baseUp - 1 + bladeBase , _SkeletonBuffer_COUNT) ];
+
+    v0 = .5 * ( p1.pos - p2.pos );
+    t0 = .5 * ( p1.tangent - p2.tangent );
+    n0 = .5 * ( p1.nor - p2.nor );
+
+
+  }else{
+
+    p0 = _SkeletonBuffer[ safeID( baseUp   + bladeBase , _SkeletonBuffer_COUNT) ];
+    p1 = _SkeletonBuffer[ safeID( baseDown + bladeBase , _SkeletonBuffer_COUNT) ];
+
+    pMinus = _SkeletonBuffer[ safeID( baseUp   - 1 + bladeBase, _SkeletonBuffer_COUNT) ];
+    p2 =     _SkeletonBuffer[ safeID( baseDown + 1 + bladeBase, _SkeletonBuffer_COUNT) ];
+
+    v1 = .5 * ( p2.pos - p0.pos );
+    v0 = .5 * ( p1.pos - pMinus.pos );
+
+
+    t1 = .5 * ( p2.tangent - p0.tangent );
+    t0 = .5 * ( p1.tangent - pMinus.tangent );
+
+    n1 = .5 * ( p2.nor - p0.nor );
+    n0 = .5 * ( p1.nor - pMinus.nor );
+
+  }
+
+  float3 c0 = p0.pos;
+  float3 c1 = p0.pos + v0/3.;
+  float3 c2 = p1.pos - v1/3.;
+  float3 c3 = p1.pos;
+
+  float3 tan0 = p0.tangent;
+  float3 tan1 = p0.tangent + t0/3.;
+  float3 tan2 = p1.tangent - t1/3.;
+  float3 tan3 = p1.tangent;
+
+  float3 nor0 = p0.nor;
+  float3 nor1 = p0.nor + n0/3.;
+  float3 nor2 = p1.nor - n1/3.;
+  float3 nor3 = p1.nor;
+
+  float3 pos = cubicCurve( amount , c0 , c1 , c2 , c3 );
+
+  upPos = cubicCurve( amount  + .01 , c0 , c1 , c2 , c3 );
+  doPos = cubicCurve( amount  - .01 , c0 , c1 , c2 , c3 );
+
+  tang = cubicCurve( amount , tan0 , tan1 , tan2 , tan3  );
+  nor = cubicCurve( amount , nor0 , nor1 , nor2 , nor3  );
+
+  return pos;
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+
+    int trailID = pID / _NumVertsPerMesh;
+    int vertID = pID % _NumVertsPerMesh;
+
+    float val = 0;
+
+
+    Vert baseVert  = _BaseBuffer[ safeID(vertID , _BaseBuffer_COUNT) ];
+
+    if( _Direction == 0 ){
+     val = baseVert.pos.x / _ModelLength;
+    }else if( _Direction == 1 ){
+     val = baseVert.pos.y / _ModelLength;
+    }else{
+     val = baseVert.pos.z / _ModelLength;
+    }
+
+
+
+
+
+    //val = baseVert.pos.y / _ModelLength;
+    Vert head  = _SkeletonBuffer[ safeID(trailID * _NumVertsPerTrail, _SkeletonBuffer_COUNT) ];
+    Vert tip  = _SkeletonBuffer[ safeID(trailID * _NumVertsPerTrail + _NumVertsPerTrail-1, _SkeletonBuffer_COUNT) ];
+  
+
+    val *= clamp(head.debug.y,.0001,1);  
+   // float rowVal = float(row) / float(_RibbonLength);
+   // float colVal =  (float(col)/float(2)) ;
+
+    float3 upPos; float3 doPos;
+    float3 upTang; float3 doTang;
+    float3 tang;
+    float3 nor;
+
+
+   
+    float3 pos = cubicFromValue( val , trailID , upPos , doPos , tang ,nor  );
+
+   
+   
+
+
+    float3 xDir = normalize( upPos - pos );
+    float3 yDir = tang;
+    float3 zDir = nor;
+
+    float3 c1 = float3( xDir.x , yDir.x , zDir.x );
+    float3 c2 = float3( xDir.y , yDir.y , zDir.y );
+    float3 c3 = float3( xDir.z , yDir.z , zDir.z );
+
+    float3x3 rotMat = float3x3(c1,c2,c3);
+    
+ //  pos *= .00000000000000000000001;
+ //    pos.x += hash(float(pID) * 10);//baseVert.pos.z  * normalize(nor) * hash(pID);
+ //    pos.y += hash(float(pID) * 13);//baseVert.pos.x  * tang * hash(pID);
+ //    pos.z += hash(float(pID) * 19);//baseVert.pos.x  * tang * hash(pID);
+ 
+
+
+  float3 fRadius = _Radius * _FullScale * clamp( head.debug.y,0,1);
+   // will be bugggyyy
+    if( _Direction == 0 ){
+      pos += baseVert.pos.y * tang * fRadius;
+      pos += baseVert.pos.z * nor* fRadius; 
+    }else if( _Direction == 1 ){
+     // pos += mul(rotMat,float3(baseVert.pos.y , 0 , baseVert.pos.)) * fRadius;//baseVert.pos.x * tang * fRadius;
+      //pos += baseVert.pos.z * nor* fRadius; 
+
+      pos += baseVert.pos.z  * normalize(nor) * fRadius;
+      pos += baseVert.pos.x  * tang * fRadius;
+      //pos += baseVert.pos.y * xDir * fRadius;
+    }else{
+      pos += baseVert.pos.x * tang * fRadius;
+      pos += baseVert.pos.y * nor* fRadius; 
+    }
+
+    //pos += normalize(nor) * ((float(pID)%2)-.5) * _Radius;// * _Radius;
+
+    float2 fUV =baseVert.uv;
+        //if( baseParticle.debug.x < 1 ){ fPos  = 0;}
+     float3 fNor = normalize(mul(rotMat,baseVert.nor));
+    float3 fTan = normalize(mul(rotMat,baseVert.tangent));
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.uv = fUV;
+    v.vel = pos - v.pos;
+    v.debug = float2(val,head.debug.y);
+    v.pos = pos;//pos;
+    v.nor = fNor;//normalize(tang);
+    v.tangent = fTan;//nor;// * ((float(pID)%2)-.5); //-normalize(cross(nor,tang));
+    _VertBuffer[sID] = v;
+
+}
+
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void PerTrailTransfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+
+    int inTrailID = pID / _NumVertsPerMesh;
+    int vertID = pID % _NumVertsPerMesh;
+    int trailID = inTrailID / _NumVertsPerTrail;
+    inTrailID = inTrailID % _NumVertsPerTrail;
+
+
+    float val = float(inTrailID)/_NumVertsPerTrail;
+
+
+    Vert baseVert  = _BaseBuffer[ safeID(vertID , _BaseBuffer_COUNT) ];
+
+
+
+
+    //val = baseVert.pos.y / _ModelLength;
+    Vert trailParticle  = _SkeletonBuffer[ safeID(inTrailID + _NumVertsPerTrail * trailID, _SkeletonBuffer_COUNT) ];
+    Vert tip  = _SkeletonBuffer[ safeID(_NumVertsPerTrail * trailID , _SkeletonBuffer_COUNT) ];
+    Vert head  = _SkeletonBuffer[ safeID(_NumVertsPerTrail * trailID +(_NumVertsPerTrail-1), _SkeletonBuffer_COUNT) ];
+    
+    float3 pos = trailParticle.pos;
+
+
+    float3 zDir = -normalize(cross(trailParticle.nor,trailParticle.tangent));
+    float3 yDir = trailParticle.tangent;
+    float3 xDir = trailParticle.nor;
+
+    float3 c1 = float3( xDir.x , yDir.x , zDir.x );
+    float3 c2 = float3( xDir.y , yDir.y , zDir.y );
+    float3 c3 = float3( xDir.z , yDir.z , zDir.z );
+
+    float3x3 rotMat = float3x3(c1,c2,c3);
+    pos +=mul(rotMat,baseVert.pos) * _Radius * _FullScale  * min(val*4, 1-val); 
+
+    float2 fUV =baseVert.uv;
+        //if( baseParticle.debug.x < 1 ){ fPos  = 0;}
+     float3 fNor = normalize(mul(rotMat,baseVert.nor));
+    float3 fTan = normalize(mul(rotMat,baseVert.tangent));
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.uv = fUV;
+    v.vel = pos - v.pos;
+    v.debug = float2(val,trailParticle.debug.y);
+    v.pos = pos;//pos;
+    v.nor = fNor;//normalize(tang);
+    v.tangent = fTan;//nor;// * ((float(pID)%2)-.5); //-normalize(cross(nor,tang));
+    _VertBuffer[sID] = v;
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void HeadTransfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+
+    int inTrailID = pID / _NumVertsPerMesh;
+    int vertID = pID % _NumVertsPerMesh;
+    int trailID = inTrailID;
+  
+
+    float val = float(inTrailID)/_NumVertsPerTrail;
+
+
+    Vert baseVert  = _BaseBuffer[ safeID(vertID , _BaseBuffer_COUNT) ];
+
+    //val = baseVert.pos.y / _ModelLength;
+    Vert trailParticle  = _SkeletonBuffer[ safeID( _NumVertsPerTrail * trailID + 1, _SkeletonBuffer_COUNT) ];
+    
+    float3 pos = trailParticle.pos;
+
+
+    float3 zDir = -normalize(cross(trailParticle.nor,trailParticle.tangent));
+    float3 yDir = trailParticle.tangent;
+    float3 xDir = trailParticle.nor;
+
+    float3 c1 = float3( xDir.x , yDir.x , zDir.x );
+    float3 c2 = float3( xDir.y , yDir.y , zDir.y );
+    float3 c3 = float3( xDir.z , yDir.z , zDir.z );
+
+    float3x3 rotMat = float3x3(c1,c2,c3);
+    pos +=mul(rotMat,baseVert.pos) * _Radius;// * min(val*4, 1-val); 
+
+    float2 fUV =baseVert.uv;
+        //if( baseParticle.debug.x < 1 ){ fPos  = 0;}
+     float3 fNor = normalize(mul(rotMat,baseVert.nor));
+    float3 fTan = normalize(mul(rotMat,baseVert.tangent));
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.uv = fUV;
+    v.vel = pos - v.pos;
+    v.debug = float2(float(trailID),trailParticle.debug.y);
+    v.pos = pos;//pos;
+    v.nor = fNor;//normalize(tang);
+    v.tangent = fTan;//nor;// * ((float(pID)%2)-.5); //-normalize(cross(nor,tang));
+    _VertBuffer[sID] = v;
+
+}

@@ -1,0 +1,82 @@
+﻿#pragma kernel Flow
+#pragma kernel Resolve
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 force;
+  float2 uv;
+  float2 debug;
+};
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+
+float3 _BasePosition;
+
+int _VertBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/hash.cginc"
+#include "../Chunks/curlNoise.cginc"
+
+
+
+
+
+#define NR_THREADS 64
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+    if( pID == 0 ){
+        vert.pos = _BasePosition;
+        vert.force = _BasePosition;
+    }else{
+        Vert down = _VertBuffer[safeID(pID-1,_VertBuffer_COUNT)];
+        vert.force =  lerp( vert.pos , down.pos , .1);
+        if( length( vert.pos -down.pos) > 3 ){ vert.force = down.pos; }
+       
+    }
+
+    
+
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+#define NR_THREADS 64
+[numthreads(NR_THREADS,1,1)]
+void Resolve(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+ 
+
+  vert.vel += vert.force * .01;
+  vert.pos += vert.vel;
+
+  vert.pos = vert.force;
+ if(length(vert.pos ) > 10 ){ vert.pos = 0;}
+
+  
+vert.vel *= .9;
+
+vert.force = 0;
+  _VertBuffer[pID] = vert;
+
+}
+
+
+

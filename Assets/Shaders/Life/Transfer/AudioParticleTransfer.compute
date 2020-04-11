@@ -1,0 +1,73 @@
+﻿#pragma kernel Forward
+
+struct Vert{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tangent;
+    float2 uv;
+    float2 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+RWStructuredBuffer<float4> _AudioBuffer;
+
+int _VertBuffer_COUNT;
+int _AudioBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+
+float3 _CameraLeft;
+
+
+float3 _CameraRight;
+float3 _CameraUp;
+float3 _CameraForward;
+float _Radius;
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Forward(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 4;
+
+
+    Vert p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+    float3 l = _CameraRight;//normalize(cross(p.nor,float3(0,1,0)));
+    float3 u = _CameraUp;//normalize(cross(p.nor,l));
+
+    l *= (float(col)-.5);
+    u *= (float(row)-.5);
+
+    int aID = clamp( float(_AudioBuffer_COUNT) * (float(particleID) / float(_VertBuffer_COUNT)) * .1  , 0 , _AudioBuffer_COUNT);
+
+    float4 aCol =  _AudioBuffer[ aID ];
+
+    float3 fPos = p.pos + (l + u) *  _Radius * (length(aCol) * 2 + .3);
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    Vert v = _VertBuffer[safeID(pID,_VertBuffer_COUNT)];
+
+    v.vel =p.vel;// v.pos - fPos;
+    v.pos = fPos;
+    v.uv = fUV;
+    v.nor = p.nor;
+    v.debug = float2( particleID , p.debug.y );
+
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)] = v;
+
+
+}
+
+

@@ -1,0 +1,174 @@
+﻿#pragma kernel Physics
+
+#include "../Chunks/noise.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/curlNoise.cginc"
+
+
+float4x4 transform; 
+
+float _Delta;
+float _Time;
+
+
+struct Vert{
+  float3 pos;
+  float3 oPos;
+  float3 nor;
+  float  hunger;
+  float  ateTime;
+  float  bored;
+  float2 uv;
+  float2 debug;
+};
+
+
+
+struct Tip{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float  hunger;
+  float  ateTime;
+  float  bored;
+  float2 uv;
+  float2 debug;
+};
+
+
+struct Trans{
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+int _NumVertsPerHair;
+
+RWStructuredBuffer<Tip> _VertBuffer;
+RWStructuredBuffer<Vert> _HairBuffer;
+RWStructuredBuffer<Trans> _PullBuffer;
+
+uint _VertBuffer_COUNT;
+uint _HairBuffer_COUNT;
+uint _PullBuffer_COUNT;
+
+#include "../Chunks/terrainCompute.cginc"
+
+
+#include "../Chunks/safeID.cginc"
+
+float3 getVel( float3 p1 , float3 p2 ){
+
+  float3 v = p1 - p2;
+
+  if( length( v ) > .5){ v = normalize( v ) *.5; }
+  return v;
+  
+}
+
+float3 springForce( float3 p1 , float3 p2 , float sl ){
+  float3 dif = p1 - p2;
+  float l = length(dif);
+
+  if( l > 0 ){
+    float d = l - sl;
+    return normalize( dif ) * d;
+  }else{
+    return float3(0,0,0);
+  }
+
+}
+
+float3 _PlayerPosition;
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Physics(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+  //int pID = id.x + id.y * gridX + id.z * gridX * gridY;
+
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+  uint bID = (pID+1) * _NumVertsPerHair - 1;
+  uint b2ID = (pID) * _NumVertsPerHair;
+  //if( pID < _VertBuffer_COUNT && bID < _HairBuffer_COUNT ){
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    bID = safeID( bID , _HairBuffer_COUNT );
+    b2ID = safeID( b2ID , _HairBuffer_COUNT );
+    Tip vert = _VertBuffer[pID];
+    Vert base = _HairBuffer[bID];
+    Vert base2 = _HairBuffer[b2ID];
+  
+    if( length(vert.pos) == 0 ){ vert.pos = base.pos ; }
+
+   /*
+    float3 force = 0;
+
+
+    for( int i = 0; i < _PullBuffer_COUNT; i++) {
+      float3 pbPos = mul(_PullBuffer[i].localToWorld, float4(0,0,0,1) );
+      float3 dif = (pbPos - vert.pos);
+      float3 dif2 = (base2.pos - vert.pos);
+      float d = length( dif );
+      float d2 = length( dif2 );
+
+
+   if( d < 1.1 ){
+        vert.data.x = 1.3;
+        //vert.data.y = 
+      }
+      if( d2 > 2 ){
+        vert.data.x = 1.2;
+      }
+
+      // If we have just 'eaten'
+      if( vert.data.x  < 1  ){
+
+
+        force += dif/d;
+        force -= springForce(vert.pos , base2.pos , 2);
+
+   base.pos = lerp( base.pos , vert.pos , .3);
+      //base.pos = lerp( base.pos , vert.pos , .3);
+      }else{
+        //vert.pos = lerp( vert.pos , base.pos , .1);
+
+          vert.pos = lerp( vert.pos , base.pos , .1);
+        force -= dif/d;
+      }
+
+      force += curlNoise( vert.pos * 1 ) * .01;
+
+        vert.data.x -= .01;
+
+    }
+
+    vert.vel += force * .004;
+
+    vert.vel *= .95;
+
+
+    //vert.pos += vert.vel;
+
+*/
+
+  
+    vert.vel = base.pos - base.oPos;
+    vert.nor = base.nor;
+    vert.debug = float2( base.debug.x , float(pID) / float(_VertBuffer_COUNT)  );
+    vert.pos = base.pos;
+
+
+    
+   _VertBuffer[pID] = vert;
+   _HairBuffer[bID] = base;
+
+  //}
+  
+}
+
+
+
+
+
+
+

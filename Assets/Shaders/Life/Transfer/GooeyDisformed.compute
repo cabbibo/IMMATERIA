@@ -1,0 +1,72 @@
+﻿#pragma kernel Transfer
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float2 debug;
+};
+
+
+float4x4 _TransformBase;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+float _Time;
+float3 _DeformerPosition;
+
+#include "../../Chunks/safeID.cginc"
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+  if( pID < _VertBuffer_COUNT ){
+
+    Vert b = _SkeletonBuffer[safeID( pID , _SkeletonBuffer_COUNT )];
+
+
+    float3 anchorPosition =  mul( _TransformBase , float4( b.pos , 1)).xyz;
+    float3 anchorNormal = normalize(mul( _TransformBase , float4( b.nor , 0).xyz));
+
+    Vert v = _VertBuffer[ sID ];
+
+   float3 dist = v.pos  - _DeformerPosition;
+
+    float noise = sin( anchorPosition.x * 1.3 + _Time ) * .1;
+    noise += sin( anchorPosition.z  * 112 + _Time ) * .05;
+
+
+    float3 force = 0;
+
+    force += anchorPosition - v.pos;
+    force += -normalize(dist) * .1;
+
+  
+    v.vel += force * .001;
+    v.pos += v.vel;
+    v.vel *= .98;
+  
+    v.nor       = normalize(mul( _TransformBase , float4( b.nor , 0).xyz));
+    v.tangent   = normalize(mul( _TransformBase , float4( b.tangent , 0).xyz));;
+    v.uv        = b.uv;
+
+    _VertBuffer[sID] = v;
+
+  }else{
+
+
+  }
+
+}

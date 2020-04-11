@@ -1,0 +1,31 @@
+﻿#pragma kernel Wave
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tang;
+  float2 uv;
+  float2 debug;
+};
+
+
+float _Time;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+int _VertBuffer_COUNT;
+
+
+#include "../../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Wave(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+
+  _VertBuffer[pID].pos = float3(float(pID)/100 , sin( float(pID) * .04 + _Time ),0);
+}

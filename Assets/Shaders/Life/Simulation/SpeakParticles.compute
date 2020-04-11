@@ -1,0 +1,244 @@
+﻿#pragma kernel Flow
+#pragma kernel Flow2
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+struct Human {
+  float4x4 leftHand;
+  float4x4 rightHand;
+  float4x4 head;
+  float leftTrigger;
+  float rightTrigger;
+  float voice;
+  float debug;
+};
+
+
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Human> _HumanBuffer;
+
+int _VertBuffer_COUNT;
+int _HumanBuffer_COUNT;
+
+int _ParticlesPerPerson;
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/hash.cginc"
+#include "../Chunks/curlNoise.cginc"
+
+
+float3 ring( float id , float r ){
+
+  float3 x = float3(1,0,0);//normalize(_Frame1 - _Frame2);
+  float3 y = float3(0,1,0);//normalize(_Frame4 - _Frame2);
+
+
+  float a = hash(id*100) * 6.28;
+
+  float3 p = r*(-sin( a )*x +cos(a)*y);
+
+  return p; 
+}
+
+
+float4x4 rotation(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return float4x4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+
+
+
+float3 newAxis( float id ){
+  float3 a = float3(hash(id),hash(id*10),hash(id*20));
+  return a * 2 - 1;
+}
+
+
+
+float _HumanRadius;
+float _HumanForce;
+
+float3 HumanForces(float3 p){
+  float3 totalForce = 0;
+  
+  for( int i = 0; i < _HumanBuffer_COUNT; i++ ){
+    Human h = _HumanBuffer[i];
+
+    float3 hL = mul(h.leftHand,float4(0,0,0,1));
+    float3 hR = mul(h.rightHand,float4(0,0,0,1));
+
+    float3 d;
+
+    d = p - hL;
+
+    if( length( d ) < _HumanRadius && length( d ) > .00001 ){ 
+
+      float v = (_HumanRadius - length( d )) / _HumanRadius;
+      totalForce += normalize( d ) * v  * (h.leftTrigger - .3);
+    }
+
+    d = p - hR;
+    if( length( d ) < _HumanRadius && length( d ) > .001 ){ 
+      float v = (_HumanRadius - length( d )) / _HumanRadius;
+      totalForce += normalize( d ) * v * (h.rightTrigger - .3) ;
+    }
+  }
+  totalForce *= _HumanForce;
+  return totalForce;
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  int person = pID/_ParticlesPerPerson;
+  Human h = _HumanBuffer[ safeID(person, _HumanBuffer_COUNT)];
+
+vert.ogPos.y = float(person);
+
+  float3 forward = mul( h.head, float4(0,0,1,0) );
+
+  if( vert.life == 0 ){ vert.life = hash(float(pID));}
+  if( length(vert.axis) == 0 ){ vert.axis = newAxis(float(pID)); }
+
+  if( vert.life < 0 ){
+   // float3 pos = float3(vert.uv.x/_MapSize,0, vert.uv.y/_MapSize );
+    float p = float(pID);
+    
+    float3 r = ring(p,.1) * h.voice;
+
+    vert.pos =  mul( h.head, float4(r-float3(0,.1,0),1)).xyz + forward  * .1; //worldPos(pos);
+    vert.life = vert.life+1;
+    vert.vel = forward * h.voice * h.voice * .05;//axis * .03;
+
+  }else{
+
+    float3 force = float3(0,0,0);
+    //force += directionVector( vert.pos );
+
+    //force += float3(0,-.5,0);
+    force += .1*curlNoise(vert.pos * 2.1);
+    //force += forward;
+
+    force += HumanForces( vert.pos );
+
+    //force = float3(0,-1,0);
+
+
+    vert.vel += force  * .0004 * (1+hash(pID*1021.))/2;
+
+    vert.life -= .004 * (3+sin(float(pID))) * h.voice;
+
+    vert.pos += vert.vel;
+
+    vert.vel *= .98;
+
+  }
+  
+  
+  vert.nor = mul(rotation(vert.axis,vert.life*10*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+
+
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow2(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  int person = pID/_ParticlesPerPerson;
+  Human h = _HumanBuffer[ safeID(person, _HumanBuffer_COUNT)];
+
+vert.ogPos.y = h.debug; //float(person);
+
+  float3 forward = mul( h.head, float4(0,0,1,0) );
+
+  if( vert.life == 0 ){ vert.life = hash(float(pID));}
+  if( length(vert.axis) == 0 ){ vert.axis = newAxis(float(pID)); }
+
+  if( vert.life < 0 ){
+   // float3 pos = float3(vert.uv.x/_MapSize,0, vert.uv.y/_MapSize );
+    float p = float(pID);
+    
+    float3 r = ring(p,.1) * h.voice;
+
+    vert.pos =  mul( h.head, float4(r-float3(0,.1,0),1)).xyz + forward  * .1; //worldPos(pos);
+    vert.life = vert.life+1;
+    vert.vel = forward * h.voice * h.voice * .05;//axis * .03;
+
+  }else{
+
+    float3 force = float3(0,0,0);
+    //force += directionVector( vert.pos );
+
+    force += float3(0,-1,0);
+    force += .1*curlNoise(vert.pos * 2.1);
+
+    force += float3(0,1,0) * max(-(vert.pos.y - .4) * 5,0);
+    //force += forward;
+    if( vert.pos.y < .1){
+      float3 op = vert.pos;
+      vert.pos.y = .1;
+      vert.vel += vert.pos - op;
+    }
+
+    force += HumanForces( vert.pos );
+
+    //force = float3(0,-1,0);
+
+
+    vert.vel += force  * .0004 * (1+hash(pID*1021.))/2;
+
+    vert.life -= .004 * (3+sin(float(pID))) * h.voice;
+
+    vert.pos += vert.vel;
+
+    vert.vel *= .98;
+
+  }
+  
+  
+  vert.nor = mul(rotation(vert.axis,vert.life*10*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}
+

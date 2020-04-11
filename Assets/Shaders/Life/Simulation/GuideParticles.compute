@@ -1,0 +1,259 @@
+﻿#pragma kernel Flow
+#pragma kernel Monolith
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+
+float _Emit;
+float3 _EmitterPosition;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/hash.cginc"
+#include "../Chunks/curlNoise.cginc"
+
+
+Texture2D<float4> _HeightMap;
+SamplerState sampler_HeightMap;
+float _MapSize;
+float _MapHeight;
+
+float4 sample( float3 pos ){
+    float4 c = _HeightMap.SampleLevel(sampler_HeightMap, pos.xz * _MapSize , 1);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+    c.x = c.x * _MapHeight;// + 1 + c.a*2);
+    return c;
+}
+
+
+float3 worldPos( float3 pos ){
+    float4 c = _HeightMap.SampleLevel(sampler_HeightMap, pos.xz * _MapSize , 1);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+    pos.y = max(pos.y, c.x * _MapHeight + 1 + c.a*2);
+    return pos;
+}
+
+
+float3 directionVector( float3 pos ){
+    float4 c = _HeightMap.SampleLevel(sampler_HeightMap, pos.xz * _MapSize , 1);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+    return 2*float3(c.g,.5,c.b)-1;
+}
+
+
+
+
+float3 ring( float id , float r ){
+
+  float3 x = float3(1,0,0);//normalize(_Frame1 - _Frame2);
+  float3 y = float3(0,1,0);//normalize(_Frame4 - _Frame2);
+
+
+  float a = hash(id*100) * 6.28;
+
+  float3 p = r*(-sin( a )*x +cos(a)*y);
+
+  return p; 
+}
+
+
+float3 ringXZ( float id , float r ){
+  float3 x = float3(1,0,0);//normalize(_Frame1 - _Frame2);
+  float3 y = float3(0,0,1);//normalize(_Frame4 - _Frame2);
+
+
+  float a = hash(id*100) * 6.28;
+
+  float3 p = r*(sin( a )*x -cos(a)*y);
+
+  return p; 
+
+}
+
+float4x4 rotation(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return float4x4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+
+
+
+float3 newAxis( float id ){
+  float3 a = float3(hash(id),hash(id*10),hash(id*20));
+  return a * 2 - 1;
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+
+
+  if( vert.life == 0 && _Emit > .5 ){ vert.life = hash(float(pID));}
+  
+
+  if( length(vert.axis) == 0 ){ vert.axis = newAxis(float(pID)); }
+
+  if( vert.life < 0 && _Emit > .5  ){
+   // float3 pos = float3(vert.uv.x/_MapSize,0, vert.uv.y/_MapSize );
+    float p = float(pID);
+    
+    float3 r = ringXZ(p,.6);
+
+ 
+    
+
+    vert.pos = _EmitterPosition + float3(0,.11,0) + r; //worldPos(pos);
+    vert.life = abs(vert.life)+1;
+    vert.life %= 1;
+    vert.life += 1;
+  
+    vert.vel = 0;//axis * .03;
+
+  }else{
+
+    float3 force = float3(0,0,0);
+    //force += directionVector( vert.pos );
+
+    //force += float3(0,-.5,0);
+    force += 5.05*curlNoise(vert.pos * .1);
+
+
+
+    float4 data = sample(vert.pos);
+
+    float height = data.x;
+    float2 direction = (data.yz *2- 1);
+    float grass = data.w;
+
+    float h =  1+2 * hash(pID*1000);
+    if( vert.pos.y < height + h + grass * 2){
+      float delta =  vert.pos.y - (height + h + grass * 2);
+      force -= 6.3 * delta * float3(0,1,0);
+    }else{
+      force -= 6.1 * float3(0,1,0);
+    }
+
+    float d = vert.pos.y - (height + 1 + grass * 2);
+
+    force += 10.3 * normalize(float3(direction.x,0, direction.y));// / max(1,d);
+
+    vert.vel += force * .0004 * (1+hash(pID*1021.))/2;
+
+    if( _Emit > .5){
+       vert.life -= .004 * (3+sin(float(pID)));
+       //vert.vel = 0;
+    }
+   vert.pos += vert.vel;
+
+   vert.vel *= .8;
+
+  }
+  
+  
+  vert.nor = mul(rotation(vert.axis,vert.life*10*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Monolith(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+
+
+  if( vert.life == 0 && _Emit > .5 ){ vert.life = hash(float(pID));}
+  
+
+  if( length(vert.axis) == 0 ){ vert.axis = newAxis(float(pID)); }
+
+  if( vert.life < 0 && _Emit > .5  ){
+   // float3 pos = float3(vert.uv.x/_MapSize,0, vert.uv.y/_MapSize );
+    float p = float(pID);
+    
+    float3 r = ringXZ(p,1.6);
+
+ 
+    
+
+    vert.pos = _EmitterPosition + r  + float3(0,4,0); //worldPos(pos);
+    vert.life = abs(vert.life)+1;
+    vert.life %= 1;
+    vert.life += 1;
+  
+    vert.vel = 0;//axis * .03;
+
+  }else{
+
+    float3 force = float3(0,0,0);
+    //force += directionVector( vert.pos );
+
+    //force += float3(0,-.5,0);
+    force += 10.35 * (1-vert.life)*curlNoise(vert.pos * .1);
+
+
+
+    float4 data = sample(vert.pos);
+
+    float height = data.x;
+    float2 direction = (data.yz *2- 1);
+    float grass = data.w;
+
+   
+    force += 10.1 * float3(0,1,0);
+   
+    float d = vert.pos.y - (height + 1 + grass * 2);
+
+    force += 1.3 * normalize(float3(direction.x,0, direction.y));// / max(1,d);
+
+    vert.vel += force * .001 * (1+hash(pID*1021.))/2;
+
+   // if( _Emit > .5){
+   vert.life -= .0003 * (3+sin(float(pID)));
+  // if( vert.life < 0 ){ vert.life += 1; }
+//}
+   vert.pos += vert.vel;
+
+   vert.vel *= .9;
+
+  }
+  
+  
+  vert.nor = mul(rotation(vert.axis,vert.life*3*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}

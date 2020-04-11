@@ -1,0 +1,215 @@
+﻿
+#pragma kernel Transfer
+#pragma kernel Forward
+#pragma kernel ForwardLifeSize
+#pragma kernel ForwardDebugXSize
+#pragma kernel LifeSize
+
+struct Vert{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tangent;
+    float2 uv;
+    float2 debug;
+};
+
+struct Particle{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tan;
+    float2 uv;
+    float used;
+    float3 triIDs;
+    float3 triWeights;
+    float3 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Particle> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+#include "../Chunks/safeID.cginc"
+
+float3 _CameraLeft;
+
+
+float3 _CameraRight;
+float3 _CameraUp;
+float3 _CameraForward;
+float _Radius;
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 4;
+
+
+    Particle p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+    float3 l = normalize(cross(p.nor,float3(0,1,0)));
+    float3 u = normalize(cross(p.nor,l));
+
+    l *= (float(col)-.5);
+    u *= (float(row)-.5);
+
+    float3 fPos = p.pos + (l + u) *  _Radius;
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].pos = fPos;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].vel = p.vel;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].uv = fUV;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].nor = p.nor;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].debug = float2( particleID , p.debug.y );
+
+}
+
+[numthreads(NR_THREADS,1,1)]
+void Forward(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 4;
+
+
+    Particle p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+    float3 l = _CameraRight;//normalize(cross(p.nor,float3(0,1,0)));
+    float3 u = _CameraUp;//normalize(cross(p.nor,l));
+
+    l *= (float(col)-.5);
+    u *= (float(row)-.5);
+
+    float3 fPos = p.pos + (l + u) *  _Radius;
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].pos = fPos;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].vel = p.vel;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].uv = fUV;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].nor = p.nor;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].debug = float2( particleID , p.debug.y );
+
+
+}
+
+[numthreads(NR_THREADS,1,1)]
+void ForwardDebugXSize(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 4;
+
+
+    Particle p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+    float3 l = _CameraRight;//normalize(cross(p.nor,float3(0,1,0)));
+    float3 u = _CameraUp;//normalize(cross(p.nor,l));
+
+    l *= (float(col)-.5);
+    u *= (float(row)-.5);
+
+    float3 fPos = p.pos + (l + u) *  _Radius  * (p.debug.x * .3 + .2);
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].pos = fPos;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].vel = p.vel;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].uv  = fUV;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].nor = p.nor;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].debug = float2( p.debug.x , p.debug.y );
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void LifeSize (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 4;
+
+
+    Particle p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+    float3 l = normalize(cross(p.nor,float3(0,1,0)));
+    float3 u = normalize(cross(p.nor,l));
+
+    l *= (float(col)-.5);
+    u *= (float(row)-.5);
+
+    float3 fPos = p.pos + (l + u) *  _Radius * min( max(3-p.debug.y * 3,0) , max(p.debug.y,0));
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].pos = fPos;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].vel = p.vel;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].uv = fUV;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].nor = p.nor;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].debug = float2( particleID , p.debug.y );
+
+}
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void ForwardLifeSize (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / 4;
+
+
+    Particle p = _SkeletonBuffer[safeID(particleID,_SkeletonBuffer_COUNT)];
+
+    int idInParticle = pID % 4;
+    int row = idInParticle / 2;
+    int col = pID % 2;
+
+  
+    float3 l = _CameraRight;//normalize(cross(p.nor,float3(0,1,0)));
+    float3 u = _CameraUp;//normalize(cross(p.nor,l));
+
+    l *= (float(col)-.5);
+    u *= (float(row)-.5);
+
+    float3 fPos = p.pos + (l + u) *  _Radius * min( max(3-p.debug.y * 3,0) , max(p.debug.y,0));
+
+    float2 fUV = float2( float(row) , float(col) );
+
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].pos = fPos;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].vel = p.vel;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].uv = fUV;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].nor = p.nor;
+    _VertBuffer[safeID(pID,_VertBuffer_COUNT)].debug = float2( particleID , p.debug.y );
+
+}
+
+

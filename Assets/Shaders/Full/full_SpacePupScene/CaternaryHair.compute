@@ -1,0 +1,434 @@
+﻿#pragma kernel Set
+#pragma kernel Collision
+#pragma kernel Constraint
+
+#include "../Chunks/noise.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/curlNoise.cginc"
+
+
+float4x4 _Transform; 
+float4x4 _Terrarium; 
+float4x4 _FullWTL; 
+float4x4 _FullLTW; 
+float _FullScale; 
+
+float _DT;
+float _Time;
+uint _Pass;
+float _SpringDistance;
+
+uint _NumVertsPerHair;
+uint _HairsPerPoint;
+float _BunchOutForce;
+float _HairLength;
+float _UpForce;
+float _HairVariance;
+
+
+
+float _CurlSize;
+float _CurlStrength;
+float _CurlSpeed;
+float _OutForce;
+float _Dampening;
+
+
+struct Vert{
+  float3 pos;
+  float3 oPos;
+  float3 nor;
+  float3 tang;
+  float2 uv;
+  float2 debug;
+};
+
+
+struct Base{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tan;
+  float2 uv;
+  float used;
+  float3 triIDs;
+  float3 triWeights;
+  float3 debug;
+};
+
+/*struct Base{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tang;
+  float2 uv;
+  float used;
+  float3 triIDs;
+  float3 triWeights;
+  float3 debug;
+};*/
+
+
+struct Bone{
+  float3 start;
+  float3 end;
+  float  size;
+  float  id;
+};
+
+
+float3 _CameraPosition;
+float3 _CameraForward;
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Base> _BaseBuffer;
+
+uint _VertBuffer_COUNT;
+uint _BaseBuffer_COUNT;
+
+#include "../Chunks/terrainCompute.cginc"
+
+#include "../Chunks/GetCamRayForce.cginc"
+
+
+float sdBox( float3 p, float3 b )
+{
+  float3 d = abs(p) - b;
+  return length(max(d,0.0))
+         + min(max(d.x,max(d.y,d.z)),0.0); // remove this line for an only partially signed sdf 
+}
+
+
+#include "../Chunks/safeID.cginc"
+
+float3 getVel( float3 p1 , float3 p2 ){
+
+  float3 v = p1 - p2;
+
+  if( length( v ) > .2){ v = normalize( v ) *.2; }
+  return v;
+  
+}
+
+float3 springForce( float3 p1 , float3 p2 , float sl ){
+  float3 dif = p1 - p2;
+  float l = length(dif);
+
+  if( l > 0 ){
+    float d = l - sl;
+    return normalize( dif ) * d;
+  }else{
+    return float3(0,0,0);
+  }
+
+}
+
+
+#include "../Chunks/humanForces.cginc"
+
+#define NR_THREADS 64
+
+[numthreads(NR_THREADS,1,1)]
+void Set (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+  uint bID = pID / _NumVertsPerHair;
+  if( pID < _VertBuffer_COUNT && bID < _BaseBuffer_COUNT ){
+
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    Vert vert = _VertBuffer[pID];
+    Base base = _BaseBuffer[safeID( bID , _BaseBuffer_COUNT )];
+
+    float3 bP = base.pos;//mul( transform,  float4(base.pos,1)).xyz;
+    float3 bN = float3(0,1,0);//normalize(mul( transform,  float4(base.nor,0))).xyz;
+    float3 s = float3(1,1,1);//mul( transform , float4(1,1,1,0)).xyz;
+
+    float l = float(pID % _NumVertsPerHair ) / float(_NumVertsPerHair);
+    //vert.pos  = bP + bN * l *(length(s)/3)* _HairLength;
+    vert.uv = float2( l , float(bID)/float(_BaseBuffer_COUNT));
+    //vert.oPos = vert.pos;//base.pos + base.nor * l + _HairLength;
+
+   //float4 vals = _HeightMap.SampleLevel(sampler_HeightMap, (base.pos.xz-.5) * _MapSize  , 0);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
+ 
+    vert.debug.x = _HairLength;//((sin(float(bID)*10000)+ _HairVariance) / _HairVariance ) * _HairLength;
+
+
+
+       
+    //vert.pos = base.pos - base.nor * l * vert.debug.x;
+    //vert.oPos = vert.pos;
+
+
+        
+    vert.debug.x = l* (.8+hash( float(bID)) * .1 * _HairLength);//((sin(float(bID)*10000)+ _HairVariance) / _HairVariance ) * _HairLength;
+
+    _VertBuffer[pID] = vert;
+
+  }
+  
+}
+
+
+
+[numthreads(NR_THREADS,1,1)]
+void Collision (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+  //int pID = id.x + id.y * gridX + id.z * gridX * gridY;
+
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+  uint bID = pID / _NumVertsPerHair;
+  if( pID < _VertBuffer_COUNT && bID < _BaseBuffer_COUNT  && _FullScale != 0 ){
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    bID = safeID( bID , _BaseBuffer_COUNT );
+    Vert vert = _VertBuffer[pID];
+    Base base = _BaseBuffer[bID];
+
+    float3 fPos = mul(_FullWTL,float4(vert.pos,1)).xyz;
+
+   // if( base.used == 1 ){
+
+    float3 bP = mul(_FullWTL,float4(base.pos,1)).xyz;// + base.nor * .4;//mul( transform,  float4(base.pos,1)).xyz;
+    float3 bN = normalize(mul(_FullWTL,float4(base.nor,0)).xyz);//normalize(mul( transform,  float4(base.nor,0))).xyz;
+    float3 s = float3(1,1,1);//mul( transform , float4(1,1,1,0)).xyz;
+
+    float3 force = 0;// bN  * _OutForce * (1-vert.uv.x * vert.uv.x);//float3( 0 , base.nor , 0.0 );
+
+    force += bN * .1;
+    force -= float3(0,.1,0);
+
+    force += curlNoise( (fPos + float3(0,_Time*_CurlSpeed,0)) * _CurlSize ) * _CurlStrength ;// * _NoiseForce;
+
+    float3 c = mul(_Transform , float4(0,0,0,1)).xyz;
+
+
+
+    force += HumanRayForces( vert.pos );
+    float3 terrarium = mul( _Terrarium , float4( vert.pos,1)).xyz;
+    float m = -sdBox( mul( _Terrarium , float4( vert.pos,1)).xyz , float3(.35,.35,.35));
+
+
+
+  float3 eps = float3(.001 , 0, 0);
+
+  float3 nor2 = float3(
+      sdBox( mul( _Terrarium , float4( vert.pos + eps.xyy ,1)).xyz , float3(.4,.4,.4)) - sdBox( mul( _Terrarium , float4( vert.pos- eps.xyy ,1)).xyz , float3(.4,.4,.4)),
+      sdBox( mul( _Terrarium , float4( vert.pos + eps.yxy ,1)).xyz , float3(.4,.4,.4)) - sdBox( mul( _Terrarium , float4( vert.pos- eps.yxy ,1)).xyz , float3(.4,.4,.4)),
+      sdBox( mul( _Terrarium , float4( vert.pos + eps.yyx ,1)).xyz , float3(.4,.4,.4)) - sdBox( mul( _Terrarium , float4( vert.pos- eps.yyx ,1)).xyz , float3(.4,.4,.4))
+    );
+
+
+if( _FullScale != 0 ){
+  m = m/_FullScale;
+  nor2 = normalize(mul(_FullWTL,nor2));
+ // if( m < 0 ){ force += 118*m *nor2;}//*nor2; }
+
+    float3 dif = fPos - c;
+
+    if( length( dif ) < 5 ){
+      //force += normalize( dif ) * 30;
+    }
+
+  }
+
+    //force += GetCamRayForce(fPos, 201.1 , 3 ) / ( 1 + length( _CameraPosition - vert.pos));
+   // if( )
+   // force += float3(0,_UpForce*vert.uv.x,0);
+
+ /*float2 d = map( vert.pos );
+
+  float3 n = calcNormal( vert.pos );
+
+  if( d.x < 0 ){
+
+    force += n * 100000;
+  }*/
+
+    //force += .2*normalize((_HandL-vert.pos))/pow(length(_HandL-vert.pos),4);
+    //force += .2*normalize((_HandR-vert.pos))/pow(length(_HandR-vert.pos),4);
+    // Inertia: objects in motion stay in motion.
+    float3 vel = getVel( vert.pos , vert.oPos);
+
+    if(_FullScale != 0){
+      vel = mul(_FullWTL,float4(vel,0)).xyz;
+    }else{
+      vel = 0;
+    }
+    if( length( force ) > 2 ){
+      force = normalize(force) * 2;
+    }
+
+    if( length( vel ) > 2 ){
+      vel = normalize(vel) * 2;
+    }
+ 
+
+
+
+    bool tb = false;
+
+    float3 targetPos = base.pos + base.nor * vert.uv.x * vert.debug.x;
+
+    /*if( length( vert.pos - targetPos) > 4 ){
+      tb = true;
+      vert.pos = targetPos;
+      vert.oPos = targetPos;
+    }*/
+
+    if( length(vert.pos) == 0 ){
+      vert.pos  = targetPos;
+      vert.oPos = mul(_FullLTW,float4(fPos,1)).xyz;
+      tb = true;
+    }
+
+    if( length(vert.pos.x) == 1000 ){
+      vert.pos  = targetPos;
+      vert.oPos = targetPos;//mul(_FullLTW,float4(fPos,1)).xyz;
+      tb = true;
+    }
+
+    // If we are at the bottom, 
+    if( vert.uv.x == 0  ){ 
+    
+      vert.pos = targetPos;//base.pos; 
+      vert.oPos = targetPos;
+      tb = true;
+      vert.nor = base.nor;
+    
+    }else{
+
+       Vert vDown = _VertBuffer[ safeID( pID - 1 , _VertBuffer_COUNT )];
+       vert.nor = normalize(vert.pos - vDown.pos);
+
+       vert.tang = normalize( cross( vert.nor , float3(0,0,1) ) ) ;
+      //vert.pos = bP + bN * .1 *vert.uv.x; 
+      //vert.oPos = bP+ bN * .1 *vert.uv.x; 
+      //tb = true;
+
+    }
+    //force = 0;
+
+
+    //vert.nor = normalize(vert.pos - vert.oPos);
+
+    if( _DT  < .1 && tb == false  && _FullScale != 0 ){
+
+      float3 next = fPos + (vel  * _Dampening + force * .01);// * _DT * 60;
+
+      vert.oPos = vert.pos;
+      vert.pos = mul(_FullLTW,float4(next,1)).xyz;
+
+    }else{
+      vert.pos = targetPos;
+
+    }
+
+   // 
+    //vert.pos = base.pos +float3(0,1,0) * vert.uv.x;
+    vert.debug.x = _HairLength * length( mul(_Transform,float4(_HairLength,0,0,0)).xyz);//_FullScale;//length(mul(_FullWTL,float4(_HairLength,0,0,1))); //vert.debug.x;
+   
+    //vert.pos = targetPos;//base.pos; 
+    //vert.oPos = targetPos;
+
+    _VertBuffer[pID] = vert;
+
+
+  /*}else{
+    vert.pos = float3(1000,0,0);
+    vert.oPos = float3(1000,0,0);
+    _VertBuffer[pID] = vert;
+  }*/
+
+  }
+  
+}
+
+
+
+
+
+
+
+[numthreads(NR_THREADS,1,1)]
+void Constraint(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+  
+  // Get the id using thread / group indices
+  uint pID = threadID + u3GroupID.x * NR_THREADS ;
+
+  // Since we are doing 2 passes for verlet, multiply by 2 
+  // to get both the vertices!
+  pID = pID * 2;
+  pID = pID + _Pass;
+
+
+  //float3 s = length(mul( transform , float4(1,1,1,0)).xyz)/3;
+  if( pID < uint(_VertBuffer_COUNT) ){
+
+    pID = uint(safeID(pID,_VertBuffer_COUNT));
+    int pUp = uint(safeID(pID+1,_VertBuffer_COUNT));
+    Vert v1 = _VertBuffer[pID];
+
+    float n = sin(1000*float(pID/_NumVertsPerHair)); 
+
+    // If we are are the end of the hair, no need to do verlet
+    if( v1.uv.x < 1-(1/ float(_NumVertsPerHair))){
+      Vert v2 = _VertBuffer[pUp];
+
+
+
+
+      float3 dif = v1.pos - v2.pos;
+
+
+      float l = length( dif );// * ((4+n)/4);
+
+      float difference = 0;
+
+      
+      // We want to make sure that l isn't zero, 
+      // or we will get some NaNs
+      if( l > 0.001 ){
+        difference = (((v1.debug.x)/float(_NumVertsPerHair))-l)/l;//((s*v1.debug.x/float(_NumVertsPerHair)) - l ) / l;
+      }
+
+      // Here is where the actual verlet goes down!
+      float3 translate = dif * .5 * difference;
+      
+      float3 t1 = 1 * translate;
+      float3 t2 = 1 * translate;
+      
+      float3 n1 = v1.pos + t1;
+      float3 n2 = v2.pos - t2;
+
+
+  
+      if( v1.uv.x == 0 ){
+        v1.pos = v1.pos;
+        v2.pos = n2 - t2;
+      }else{
+        // move towards
+        v1.pos = n1;
+        v2.pos = n2;
+      }
+        
+
+              // Set both the values in the proper buffer location!
+     _VertBuffer[ pID ] = v1;
+     _VertBuffer[ pUp ] = v2;
+
+
+
+    }
+
+
+
+  }
+
+
+
+}
+

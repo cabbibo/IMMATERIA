@@ -1,0 +1,80 @@
+﻿#pragma kernel Transfer
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 og;
+  float2 uv;
+  float2 debug;
+};
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+
+int _VertBuffer_COUNT;
+
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/hash.cginc"
+
+
+Texture2D<float4> _DepthTexture;
+SamplerState sampler_DepthTexture;
+
+float4x4 _CameraMatrix;
+float _CameraSize;
+float _CameraNear;
+float _CameraFar;
+
+
+float3 getPos( float x , float y , float3 f , float3 r , float3 u , float3 p){
+  
+    float depth = _DepthTexture.SampleLevel(sampler_DepthTexture, float2(x,y), 0);
+  return p + r * (x-.5)  * _CameraSize * 2 + u * (y-.5) * _CameraSize*2 +  f * ( _CameraNear + (_CameraFar-_CameraNear) * (1-depth) );
+}
+
+float3 getNor(  float x , float y , float3 f , float3 r , float3 u , float3 p ){
+
+  float delta = .0001;
+
+  float3 le  = getPos(x + delta , y , f , r , u , p );
+  float3 ri  = getPos(x - delta , y , f , r , u , p );
+  float3 up  = getPos(x  , y+ delta, f , r , u , p );
+  float3 dow = getPos(x  , y- delta, f , r , u , p );
+
+  float3 nor = normalize(cross((le-ri)*1000 , ( up-dow) * 1000));
+
+  return nor;
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _VertBuffer_COUNT ){
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[ sID ];
+
+    float x  = hash( pID * 100 );
+    float y  = hash( pID * 121 );
+
+    float3 f = normalize( mul(_CameraMatrix, float4(0,0,1,0)) );
+    float3 r = normalize( mul(_CameraMatrix, float4(1,0,0,0)) );
+    float3 u = normalize( mul(_CameraMatrix, float4(0,1,0,0)) );
+    float3 p = mul(_CameraMatrix, float4(0,0,0,1));
+
+    float depth = _DepthTexture.SampleLevel(sampler_DepthTexture, float2(x,y), 0);
+
+
+    v.pos = getPos( x , y , f , r, u , p );//p + r * (x-.5)  * _CameraSize * 2 + u * (y-.5) * _CameraSize*2 +  f * ( _CameraNear + (_CameraFar-_CameraNear) * (1-depth) );
+    v.nor = getNor( x , y , f , r , u , p );
+
+    _VertBuffer[sID] = v;
+  }
+
+}

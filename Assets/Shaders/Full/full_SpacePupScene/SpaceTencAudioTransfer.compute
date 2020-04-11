@@ -1,0 +1,153 @@
+﻿#pragma kernel Transfer
+
+struct Vert{
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tangent;
+    float2 uv;
+    float2 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+RWStructuredBuffer<float4> _AudioBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+int _AudioBuffer_COUNT;
+
+
+
+int _NumVertsPerHair;
+int _TubeWidth;
+int _TubeLength;
+float _Radius;
+
+#include "../Chunks/cubicCurve.cginc"
+#include "../Chunks/safeID.cginc"
+
+float3 cubicFromValue( in float val , in int particleID, out float3 upPos , out float3 doPos ){
+
+  float3 p0 = float3( 0. , 0. , 0. );
+  float3 v0 = float3( 0. , 0. , 0. );
+  float3 p1 = float3( 0. , 0. , 0. );
+  float3 v1 = float3( 0. , 0. , 0. );
+
+  float3 p2 = float3( 0. , 0. , 0. );
+
+  float vPP = float(_NumVertsPerHair);
+
+  float base = val * (vPP-1);
+
+  int baseUp   = floor( base );
+  int baseDown = ceil( base );
+  float amount = base - float(baseUp);
+
+
+  int bladeBase = (_NumVertsPerHair) * particleID;
+
+  if( baseUp == 0 ){
+
+    p0 = _SkeletonBuffer[ safeID( baseUp       + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+    p1 = _SkeletonBuffer[ safeID( baseDown     + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+    p2 = _SkeletonBuffer[ safeID( baseDown + 1 + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+
+    v1 = .5 * ( p2 - p0 );
+
+  }else if( baseDown == vPP-1 ){
+
+    p0 = _SkeletonBuffer[ safeID( baseUp     + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+    p1 = _SkeletonBuffer[ safeID( baseDown   + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+    p2 = _SkeletonBuffer[ safeID( baseUp - 1 + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+
+    v0 = .5 * ( p1 - p2 );
+
+  }else{
+
+    p0 = _SkeletonBuffer[ safeID( baseUp   + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+    p1 = _SkeletonBuffer[ safeID( baseDown + bladeBase , _SkeletonBuffer_COUNT) ].pos;
+
+
+    float3 pMinus = float3(0,0,0);
+
+    pMinus = _SkeletonBuffer[ safeID( baseUp   - 1 + bladeBase, _SkeletonBuffer_COUNT) ].pos;
+    p2 =     _SkeletonBuffer[ safeID( baseDown + 1 + bladeBase, _SkeletonBuffer_COUNT) ].pos;
+
+    v1 = .5 * ( p2 - p0 );
+    v0 = .5 * ( p1 - pMinus );
+
+  }
+
+  float3 c0 = p0;
+  float3 c1 = p0 + v0/3.;
+  float3 c2 = p1 - v1/3.;
+  float3 c3 = p1;
+
+  float3 pos = cubicCurve( amount , c0 , c1 , c2 , c3 );
+
+  upPos = cubicCurve( amount  + .01 , c0 , c1 , c2 , c3 );
+  doPos = cubicCurve( amount  - .01 , c0 , c1 , c2 , c3 );
+
+  return pos;
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+
+    int particleID = pID / ( _TubeLength * (_TubeWidth+1));
+
+    int idInTube = pID % ( _TubeLength * (_TubeWidth+1));
+    int row = idInTube / (_TubeWidth+1);
+    int col = pID % (_TubeWidth+1);
+
+    float rowVal =  (float(row) / float(_TubeLength)) * .95;
+    float colVal =  (float(col%_TubeWidth)/float(_TubeWidth)) ;
+
+    float3 upPos; float3 doPos;
+
+    float3 pos = cubicFromValue( rowVal , particleID , upPos , doPos );
+
+    float3 d = normalize(upPos - pos);
+    float3 x = normalize(cross( d , float3(1,0,0)) );
+    float3 y = normalize(cross( x , d));
+
+    float angle = colVal * 2*3.14159;
+
+    float r = _Radius * _SkeletonBuffer[safeID(particleID *_NumVertsPerHair , _SkeletonBuffer_COUNT)].debug.x;
+    int aID = clamp( float(_AudioBuffer_COUNT) * (rowVal * .1 + (sin(particleID* 100 ) * .3 + .3)) , 0 , _AudioBuffer_COUNT);
+
+    float4 aCol =  _AudioBuffer[ aID ];
+
+    r *= (length(aCol) + .1);
+
+
+    // Giving some variance of radius over length of tentacle
+    r *= saturate(min( rowVal * 10 + .3, (1-pow(rowVal,2)*1.3)));
+
+    float3 outVec = (sin(angle) *x - cos(angle) * y);// * r;
+    float3 fPos = pos + outVec * r ;// * (.1 + rowVal* rowVal);
+
+    float2 fUV = float2( rowVal , colVal + col / _TubeWidth );
+    float3 fNor = normalize( outVec );
+    float3 fTan = normalize(cross(fNor,d));
+
+    int sID = safeID( pID , _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+   
+    v.nor = fNor;
+    v.uv = fUV;
+    v.tangent = fTan;
+    v.debug = float2(float(particleID),length(v.pos-fPos));
+    v.vel = v.pos - fPos;
+    v.pos = fPos;
+    _VertBuffer[sID] = v;
+
+}

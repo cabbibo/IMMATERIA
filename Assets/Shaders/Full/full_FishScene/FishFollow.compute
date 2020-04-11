@@ -1,0 +1,212 @@
+﻿#pragma kernel Flow
+#pragma kernel TrailFlow
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+struct Trans {
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _HeadBuffer;
+RWStructuredBuffer<Trans> _TransformBuffer;
+
+int _ParticlesPerTrail;
+
+
+float4x4 _Transform;
+float4x4 _FullWTL;
+float4x4 _FullLTW;
+float _FullScale;
+
+
+int _VertBuffer_COUNT;
+int _HeadBuffer_COUNT;
+int _TransformBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+#include "../Chunks/snoise.cginc"
+#include "../Chunks/hash.cginc"
+#include "../Chunks/curlNoise.cginc"
+float sdBox( float3 p, float3 b )
+{
+  float3 d = abs(p) - b;
+  return length(max(d,0.0))
+         + min(max(d.x,max(d.y,d.z)),0.0); // remove this line for an only partially signed sdf 
+}
+
+float map( float3 pos ){
+    
+    float minDist = 100000;
+    
+    for( int i = 0; i < _TransformBuffer_COUNT; i++ ){
+      float3 newPos = mul( _TransformBuffer[i].worldToLocal , float4( pos ,1)).xyz;
+      float  dist = sdBox( newPos , float3(.6,.6,.6));
+      minDist = min( minDist ,dist);
+    }
+
+    return minDist;
+}
+
+float3 getNor( float3 pos ){
+  float3 eps = float3(.001 , 0, 0);
+
+  float3 nor = float3(
+      map( pos + eps.xyy ) - map( pos - eps.xyy),
+      map( pos + eps.yxy ) - map( pos - eps.yxy),
+      map( pos + eps.yyx ) - map( pos - eps.yyx)
+    );
+  return normalize( nor  * 1000 );
+}
+
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int idInTrail = pID % _ParticlesPerTrail;
+  int headID = pID / _ParticlesPerTrail;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  Vert head = _HeadBuffer[safeID( headID , _HeadBuffer_COUNT )];
+
+  Vert targetVert;
+  if( idInTrail == 0){
+    targetVert = head;
+  }else{
+    targetVert = _VertBuffer[pID-1];
+  }
+
+
+  //head.life -= .0001 / length( head.pos - _VertBuffer[headID + _ParticlesPerTrail-1].pos );
+    _HeadBuffer[headID] = head;
+
+  if( vert.life == 0 ){ vert.life = hash(float(pID)); }
+ //vert.life = head.life;//lerp( vert.life , targetVert.life , .1 );
+
+  if( vert.life < 0  || abs(vert.life-targetVert.life) > .2 ){
+
+    vert.pos = head.pos;
+    vert.life = targetVert.life;
+    //vert.life = hash(float(pID)); 
+
+  }else{
+    
+    float3 force = 0;
+
+    float3 fPos = mul(_FullWTL,float4(vert.pos,1)).xyz;
+    float3 fTPos = mul(_FullWTL,float4(targetVert.pos,1)).xyz;
+
+    force += -(fPos - fTPos) * .04;
+
+
+    float dist = map( vert.pos );
+    float3 nor = getNor( vert.pos ); 
+
+
+    nor = normalize(mul(_FullWTL , float4(nor,0)).xyz); 
+    dist = dist/_FullScale;
+
+    if( dist < 0 ){ force += nor  * .001; }
+    
+    vert.vel += force;
+    fPos += vert.vel;
+
+
+    vert.vel *= .7;//* minDist;
+    vert.life = head.life;
+  
+    vert.pos = mul(_FullLTW,float4(fPos,1)).xyz;
+  }
+  
+ // vert.nor = mul(rotation(vert.axis,vert.life*20*(hash(float(pID*123)))+hash(float(pID * 23))),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void TrailFlow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int idInTrail = pID % _ParticlesPerTrail;
+  int headID = pID / _ParticlesPerTrail;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  Vert head = _HeadBuffer[safeID( headID , _HeadBuffer_COUNT )];
+
+  Vert targetVert;
+  if( idInTrail == 0){
+    targetVert = head;
+  }else{
+    targetVert = _VertBuffer[pID-1];
+  }
+
+
+  //head.life -= .0001 / length( head.pos - _VertBuffer[headID + _ParticlesPerTrail-1].pos );
+    _HeadBuffer[headID] = head;
+
+  if( vert.life == 0 ){ vert.life = hash(float(pID)); }
+ //vert.life = head.life;//lerp( vert.life , targetVert.life , .1 );
+
+  if( vert.life < 0  || abs(vert.life-targetVert.life) > .2 ){
+
+    vert.pos = head.pos;
+    vert.life = targetVert.life;
+    //vert.life = hash(float(pID)); 
+
+  }else{
+    
+    float3 force = 0;
+
+    float3 fPos = mul(_FullWTL,float4(vert.pos,1)).xyz;
+    float3 fTPos = mul(_FullWTL,float4(targetVert.pos,1)).xyz;
+
+    force += -(fPos - fTPos) * .04;
+
+
+    float dist = map( vert.pos );
+    float3 nor = getNor( vert.pos ); 
+
+
+    nor = normalize(mul(_FullWTL , float4(nor,0)).xyz); 
+    dist = dist/_FullScale;
+
+    if( dist < 0 ){ force += nor  * .001; }
+    
+    vert.vel += force;
+    fPos += vert.vel;
+
+
+    vert.vel *= .7;//* minDist;
+    vert.life = head.life;
+  
+    vert.pos = mul(_FullLTW,float4(fPos,1)).xyz;
+  }
+  
+ // vert.nor = mul(rotation(vert.axis,vert.life*20*(hash(float(pID*123)))+hash(float(pID * 23))),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}

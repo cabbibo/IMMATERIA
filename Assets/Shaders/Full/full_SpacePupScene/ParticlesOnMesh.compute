@@ -1,0 +1,105 @@
+﻿#pragma kernel Simulation
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tang;
+  float2 uv;
+  float2  debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+
+#include "../Chunks/safeID.cginc"
+
+
+
+struct Human {
+  float4x4 leftHand;
+  float4x4 rightHand;
+  float4x4 head;
+  float leftTrigger;
+  float rightTrigger;
+  float voice;
+  float debug;
+};
+
+RWStructuredBuffer<Human> _HumanBuffer;
+int _HumanBuffer_COUNT;
+
+
+float _HumanRadius;
+float _HumanForce;
+float _HumanFalloff;
+
+float3 HumanForces(float3 p){
+  float3 totalForce = 0;
+  
+  for( int i = 0; i < _HumanBuffer_COUNT; i++ ){
+    Human h = _HumanBuffer[i];
+
+    float3 hL = mul(h.leftHand,float4(0,0,0,1));
+    float3 hR = mul(h.rightHand,float4(0,0,0,1));
+
+    float3 d;
+
+    d = p - hL;
+
+    if( length( d ) < _HumanRadius && length( d ) > .00001 ){ 
+
+      float v = (_HumanRadius - length( d )) / _HumanRadius;
+      totalForce += normalize( d ) * v ;
+    }
+
+    d = p - hR;
+    if( length( d ) < _HumanRadius && length( d ) > .001 ){ 
+      float v = (_HumanRadius - length( d )) / _HumanRadius;
+      totalForce += normalize( d ) * v ;
+    }
+  }
+  totalForce *= _HumanForce;
+  return totalForce;
+}
+
+
+float4x4 _TransformBase;
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Simulation (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _VertBuffer_COUNT ){
+
+    Vert v = _VertBuffer[safeID(pID,_SkeletonBuffer_COUNT)];
+    Vert b = _SkeletonBuffer[safeID(pID,_SkeletonBuffer_COUNT)];
+
+    float3 fPos = mul( _TransformBase, float4(b.pos , 1 ));
+
+    float3 force = 0;
+
+    force += fPos - v.pos;//v.pos - fPos;
+    force += HumanForces(v.pos);
+
+
+    v.vel += force * .01;
+
+    v.pos += v.vel;
+    v.vel *= .9;
+
+
+    
+
+    _VertBuffer[safeID(pID,_SkeletonBuffer_COUNT)] = v;
+
+  }
+
+
+}
+
