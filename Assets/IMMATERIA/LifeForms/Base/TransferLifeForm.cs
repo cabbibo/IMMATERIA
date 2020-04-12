@@ -20,10 +20,6 @@ public class TransferLifeForm : Cycle {
   public Binder[] binders;
 
 
-  public override void Destroy(){
-    Cycles.Remove( body );
-    Cycles.Remove( transfer );
-  }
   // Use this for initialization
   public override void _Create(){
 

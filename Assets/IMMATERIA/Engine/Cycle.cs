@@ -57,6 +57,10 @@ public class Cycle : MonoBehaviour{
   Creation
 
 */
+
+public void Awake(){
+    if( Cycles == null ){ Cycles = new List<Cycle>();}
+}
   public virtual void _Create(){ DoCreate(); }
   public virtual void Create(){}
 
@@ -64,11 +68,13 @@ public class Cycle : MonoBehaviour{
 
    float t = Time.time;
 
+    //print("DOCREAS");
+
+ 
+
     //_Destroy();
    // SetStates();
   //  print( this );
-
-    //print("DOCREAS");
 
     if( created ){ DebugThis("Created Multiple Times"); }
     if( debug ){ DebugThis("DoCreate"); }
@@ -384,6 +390,7 @@ public class Cycle : MonoBehaviour{
 
 public virtual void _Activate(){
   Activate();
+
   foreach( Cycle c in Cycles ){
 
     CheckSelfCycle(c);

@@ -94,6 +94,8 @@ public class ParticlesOnGooeyMesh : Cycle
 
     public override void Create(){
 
+
+
         // first make our base verts that we will copy
         if( baseVerts  == null ){ baseVerts = gameObject.AddComponent<MeshVerts>(); }
         baseVerts.mesh = mesh;

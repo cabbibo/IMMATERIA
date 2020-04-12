@@ -27,13 +27,13 @@ if you are just a 'show me a code' person, download the repo, go into scenes, an
 
 ### Intermediate ( Coming Soon )
 
-7) Scenes/Intermediate/FormsOnForms
-8) Scenes/Intermediate/FormsOnFormsOnForms
-9) Scenes/Intermediate/CreatingCustomLifeform
-10) Scenes/Intermediate/Hair
+7) [Scenes/Intermediate/FormsOnForms](https://youtu.be/GC5f3d3uanM)
+8) [Scenes/Intermediate/FormsOnFormsOnForms]
+9) [Scenes/Intermediate/CreatingCustomLifeform]
+
   
 ### Advanced ( Coming Soon )
-
+10) Scenes/Advanced/Hair
 11) Scenes/Advanced/SmoothGooMesh
 12) Scenes/Advanced/HairOnScene
 13) Scenes/Advanced/SpacePuppy

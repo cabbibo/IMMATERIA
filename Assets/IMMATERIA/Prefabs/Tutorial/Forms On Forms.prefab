@@ -285,8 +285,8 @@ MonoBehaviour:
   data: {fileID: 0}
   Cycles: []
   toBind: {fileID: 4342550956997456187}
-  name: _DeformerPosition
-  transform: {fileID: 0}
+  boundName: _DisformerPosition
+  boundTransform: {fileID: 0}
 --- !u!1 &4342550957166935289
 GameObject:
   m_ObjectHideFlags: 0

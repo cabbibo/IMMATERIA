@@ -436,9 +436,9 @@ MonoBehaviour:
   primaryName: _VertBuffer
   primaryForm: {fileID: 2264225331320609222}
   shader: {fileID: 7200000, guid: 2a5a076e5bfa39041a401d55335c359b, type: 3}
-  kernelName: Transfer
+  kernelName: Default
   countMultiplier: 1
-  kernel: 0
+  kernel: 1
   executionTime: 0
 --- !u!114 &2264225331320609241
 MonoBehaviour:
@@ -471,8 +471,8 @@ MonoBehaviour:
   data: {fileID: 0}
   Cycles: []
   toBind: {fileID: 2264225331320609240}
-  name: _DeformerPosition
-  transform: {fileID: 0}
+  boundName: _DisformerPosition
+  boundTransform: {fileID: 0}
 --- !u!1 &2264225331691148314
 GameObject:
   m_ObjectHideFlags: 0
