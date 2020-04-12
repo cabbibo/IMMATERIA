@@ -5,7 +5,7 @@ using UnityEngine;
 namespace IMMATERIA {
 public class ParticlesOnDynamicMesh: Particles {
   
-  public MeshFilter mesh;
+  public Mesh mesh;
 
   public string noiseType;// { "even", "fractal" , "allOne"};
   public float noiseSize;
@@ -27,7 +27,7 @@ public class ParticlesOnDynamicMesh: Particles {
 
   public override void Embody(){
 
-    Mesh m = mesh.sharedMesh;
+    Mesh m = mesh;
 
     int[] triangles = m.triangles;
     Vector3[] verts = m.vertices;

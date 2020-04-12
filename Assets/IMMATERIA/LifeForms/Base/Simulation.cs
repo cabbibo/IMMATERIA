@@ -6,7 +6,7 @@ namespace IMMATERIA {
 public class Simulation : Cycle
 {
 
-  public string nameInBuffer;
+  public string nameInBuffer = "_VertBuffer";
   public Form form;
   public Life life;
 
@@ -18,20 +18,17 @@ public class Simulation : Cycle
   // Use this for initialization
   public override void _Create(){
 
-    if( form == null ){ form = GetComponent<Form>(); }
-    if( life == null ){ life = GetComponent<Life>(); }
+    if( form == null ){ form = GetComponent<Form>();}
+    if( life == null ){ life = GetComponent<Life>();}
 
     if( !skipFormBind) SafeInsert(form);
     SafeInsert(life);
 
-    if( binders == null ){
-      binders = GetComponents<Binder>();
-    }
 
+    binders = GetComponents<Binder>();
     for( int i = 0 ; i < binders.Length; i++ ){
       SafeInsert( binders[i] );
     }
-
     
     DoCreate();
 
@@ -40,6 +37,9 @@ public class Simulation : Cycle
 
   public override void _Bind(){
 
+    print( life );
+    print( nameInBuffer );
+    print( form );
     life.BindPrimaryForm(nameInBuffer, form); 
     
     Bind();

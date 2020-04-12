@@ -139,8 +139,6 @@ public class SkinnedVerts : Form {
       values[ index++ ] = weights[i].boneIndex3;
 
       // Debug
-      float col = 1;
-      //if( i < cols.Length  ){ col = cols[i].r; }
       
       values[ index++ ] = 1;
 

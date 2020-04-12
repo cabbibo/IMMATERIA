@@ -102,7 +102,7 @@ public class Form : Cycle {
   public ComputeBuffer MakeBuffer(){
 
     if( count ==  0){
-      DebugThis( "YOUR COUNT IS ZERO U DOINKY!");
+      DebugThis( "YOUR COUNT IS ZERO U DINKY DOO!");
     }
     
     if( intBuffer == true ){

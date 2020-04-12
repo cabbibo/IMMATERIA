@@ -29,7 +29,8 @@ public class Data : Cycle
 
   public override void Create(){
     if( humans != null ){ SafeInsert(humans); }
-    camera = Camera.main.transform;
+    if( camera == null ){ camera = Camera.main.transform; }
+    if( god == null ){ GetComponent<God>(); }
   }
 
   public void BindPlayerData(Life toBind){

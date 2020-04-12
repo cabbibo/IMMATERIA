@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace IMMATERIA {
+
+
 public class Body : Cycle {
 
 
@@ -19,8 +21,9 @@ public class Body : Cycle {
 
     if( mpb == null ){ mpb = new MaterialPropertyBlock(); }
     
-    if( verts == null ){ verts = GetComponent<MeshVerts>(); }
-    if( triangles == null ){ triangles = GetComponent<MeshTris>(); }
+
+    if( verts == null ){ verts = GetComponent<Form>();}
+    if( triangles == null ){ triangles = GetComponent<IndexForm>();}
     
     SafeInsert(verts);
     SafeInsert(triangles);

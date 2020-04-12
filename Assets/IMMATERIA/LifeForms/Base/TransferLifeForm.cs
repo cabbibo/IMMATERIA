@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace IMMATERIA {
+
 public class TransferLifeForm : Cycle {
 
 
@@ -14,7 +15,9 @@ public class TransferLifeForm : Cycle {
   public Form skeleton;
   public float radius;
 
-    public float[] transformArray;
+  public float[] transformArray;
+
+  public Binder[] binders;
 
 
   public override void Destroy(){
@@ -29,9 +32,22 @@ public class TransferLifeForm : Cycle {
 
     transformArray = new float[16];
 
+
+    
+    binders = GetComponents<Binder>();
+    for( int i = 0 ; i < binders.Length; i++ ){
+      SafeInsert( binders[i] );
+    }
+
+    if( body == null ){ body = GetComponent<Body>(); }
+    if( transfer == null ){ transfer = GetComponent<Life>();}
+    if( verts == null ){ verts = GetComponent<Form>();}
+    if( triangles == null ){ triangles = GetComponent<IndexForm>();}
+
+    DebugThis(""+body.GetType());
+
     SafeInsert(body);
     SafeInsert(transfer);
-
 
     DoCreate();
 
@@ -44,7 +60,7 @@ public class TransferLifeForm : Cycle {
     data.BindCameraData( transfer );
     
     transfer.BindFloat("_Radius" , () => this.radius ); 
-    transfer.BindFloats("_TransformBase", () => this.transformArray);
+    transfer.BindFloats("_Transform", () => this.transformArray);
     
     Bind();
   }
@@ -56,9 +72,7 @@ public class TransferLifeForm : Cycle {
 
     if( active == true ){
 
-
       transformArray = HELP.GetMatrixFloats( transform.localToWorldMatrix );
-  
 
       if( showBody == true ){
         body.active = true;

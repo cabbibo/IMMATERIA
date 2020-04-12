@@ -6,10 +6,10 @@ public class BindForm : Binder
 {
     
 
-    public string transformName;
+    public string nameInBuffer;
     public Form form;
     public override void Bind(){
-      toBind.BindForm( transformName, form );
+      toBind.BindForm( nameInBuffer, form );
     }
 
 

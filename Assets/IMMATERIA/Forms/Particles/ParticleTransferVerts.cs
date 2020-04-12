@@ -12,6 +12,7 @@ public class ParticleTransferVerts: Form {
 
   public override void _Create(){
     
+    if( mpb == null ){ mpb = new MaterialPropertyBlock(); }
     if( particles == null ){particles = GetComponent<Particles>(); }
     SetStructSize();
     SetCount();
@@ -27,6 +28,14 @@ public class ParticleTransferVerts: Form {
     // |/|
     // 2-3
     count = (int)((float)(particles.count * 4) * countMultiplier);
+
+
+    DebugThis("Count set");
+  }
+
+  public override void OnLive(){
+    DebugThis("Lving");
+    print(this._buffer);
   }
 
   

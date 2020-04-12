@@ -63,7 +63,7 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
     l *= (float(col)-.5);
     u *= (float(row)-.5);
 
-    float3 fPos = p.pos + (l + u) *  _Radius;
+    float3 fPos = p.pos + (l + u) * 100;// _Radius;
 
     float2 fUV = float2( float(row) , float(col) );
 

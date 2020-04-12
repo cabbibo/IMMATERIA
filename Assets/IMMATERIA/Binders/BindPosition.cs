@@ -4,10 +4,12 @@ using UnityEngine;
 using IMMATERIA;
 public class BindPosition : Binder
 {
-    public string name;
-    public Transform transform;
+    public string boundName;
+    public Transform boundTransform;
 
     public override void Bind(){
-        toBind.BindVector3(name, () => transform.position);
+        DebugThis("IM BIDNING");
+        print(toBind);
+        toBind.BindVector3(boundName, () => boundTransform.position);
     }
 }

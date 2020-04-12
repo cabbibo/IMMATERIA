@@ -135,13 +135,12 @@ public class Life : Cycle {
   }
 
   public virtual void FindKernel(){
-    //DebugThis("TEST");try
         try{
             // Do something that can throw an exception
 
           kernel = shader.FindKernel( kernelName );
         }
-        catch (Exception e)
+        catch
         {
             DebugThis("Your Kernel name couldn't be found");
                #if UNITY_EDITOR

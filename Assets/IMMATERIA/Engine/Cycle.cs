@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
+using UnityEditor;
 
 namespace IMMATERIA {
 [ExecuteInEditMode]
@@ -533,6 +535,22 @@ void SetStates(){
 
         Cycles.Remove( c );
       }
+  }
+
+
+  public void SafeGet( ref dynamic toGet , Type myType){
+    print( toGet );
+    if( toGet == null ){
+      toGet = GetComponent(myType);
+      if( toGet == null ){
+        DebugThis("Couldn't Auto Assign " + toGet );
+      }else{
+        print( toGet );
+        EditorGUIUtility.PingObject(toGet);
+        DebugThis("Auto-Assigned " + toGet );
+      }
+    }
+
   }
 
 }

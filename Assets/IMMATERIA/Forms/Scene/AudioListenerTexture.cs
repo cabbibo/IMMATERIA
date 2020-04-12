@@ -17,7 +17,6 @@ public class AudioListenerTexture : Form
     public float[] lowRes;
     public int lowResSize;// = 256;
 
-    public ComputeBuffer _buffer;
 
     public Color[] pixels;
 
