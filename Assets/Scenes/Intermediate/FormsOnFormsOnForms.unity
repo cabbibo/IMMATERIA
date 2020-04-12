@@ -760,7 +760,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520932699}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.202, y: -0.359, z: -1.845}
+  m_LocalPosition: {x: -1.347, y: -0.359, z: -1.845}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1056,6 +1056,11 @@ PrefabInstance:
       propertyPath: data
       value: 
       objectReference: {fileID: 1463586040}
+    - target: {fileID: 2264225331320609240, guid: f225ef03203d63140a18e7d6194c6c02,
+        type: 3}
+      propertyPath: kernelName
+      value: Default
+      objectReference: {fileID: 0}
     - target: {fileID: 2264225331320609241, guid: f225ef03203d63140a18e7d6194c6c02,
         type: 3}
       propertyPath: data
@@ -1066,6 +1071,16 @@ PrefabInstance:
       propertyPath: transform
       value: 
       objectReference: {fileID: 1520932703}
+    - target: {fileID: 2264225331320609241, guid: f225ef03203d63140a18e7d6194c6c02,
+        type: 3}
+      propertyPath: boundTransform
+      value: 
+      objectReference: {fileID: 1520932703}
+    - target: {fileID: 2264225331320609241, guid: f225ef03203d63140a18e7d6194c6c02,
+        type: 3}
+      propertyPath: boundName
+      value: _DisformerPosition
+      objectReference: {fileID: 0}
     - target: {fileID: 2264225331320609243, guid: f225ef03203d63140a18e7d6194c6c02,
         type: 3}
       propertyPath: m_Name

@@ -694,7 +694,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1520932699}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.202, y: 0.277, z: -1.699}
+  m_LocalPosition: {x: -1.373, y: 0.277, z: -1.699}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -839,12 +839,12 @@ MonoBehaviour:
   died: 0
   destroyed: 0
   debug: 0
-  active: 0
+  active: 1
   data: {fileID: 1463586040}
   Cycles: []
   toBind: {fileID: 1905483310}
-  name: _DeformerPosition
-  transform: {fileID: 1520932703}
+  boundName: _DisformerPosition
+  boundTransform: {fileID: 1520932703}
 --- !u!114 &1905483312 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1075942554174841978, guid: 0f68e590ac9b9134c972f8d7a124db38,
@@ -898,6 +898,11 @@ PrefabInstance:
       propertyPath: shader
       value: 
       objectReference: {fileID: 7200000, guid: 2a5a076e5bfa39041a401d55335c359b, type: 3}
+    - target: {fileID: 1075942554174841956, guid: 0f68e590ac9b9134c972f8d7a124db38,
+        type: 3}
+      propertyPath: kernelName
+      value: Default
+      objectReference: {fileID: 0}
     - target: {fileID: 1075942554174841957, guid: 0f68e590ac9b9134c972f8d7a124db38,
         type: 3}
       propertyPath: data
@@ -1006,7 +1011,7 @@ PrefabInstance:
     - target: {fileID: 1075942554174841977, guid: 0f68e590ac9b9134c972f8d7a124db38,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -1.207
       objectReference: {fileID: 0}
     - target: {fileID: 1075942554174841977, guid: 0f68e590ac9b9134c972f8d7a124db38,
         type: 3}

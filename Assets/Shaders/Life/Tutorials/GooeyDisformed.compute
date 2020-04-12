@@ -1,4 +1,5 @@
 ﻿#pragma kernel Transfer
+#pragma kernel Default
 
 struct Vert{
   float3 pos;
@@ -25,13 +26,60 @@ float3 _DisformerPosition;
 float _Force;
 float _Dampening;
 float _DisformerForce;
-
 #include "../../Chunks/safeID.cginc"
 
 
 #define NR_THREADS 128
 [numthreads(NR_THREADS,1,1)]
-void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+void Default(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+  if( pID < _VertBuffer_COUNT ){
+
+    Vert b = _SkeletonBuffer[safeID( pID , _SkeletonBuffer_COUNT )];
+
+
+    float3 anchorPosition =  mul( _Transform , float4( b.pos , 1)).xyz;
+    float3 anchorNormal = normalize(mul( _Transform , float4( b.nor , 0).xyz));
+
+    Vert v = _VertBuffer[ sID ];
+
+   float3 dist = v.pos  - _DisformerPosition;///_DisformerPosition;
+
+
+    float3 force = 0;
+
+    force += (anchorPosition - v.pos)*1;
+    force += (-normalize(dist) )*.3;
+
+  
+    v.vel += force * .001 ;
+    v.pos += v.vel;
+    v.vel *= .98;
+  
+    v.nor       = normalize(mul( _Transform , float4( b.nor , 0).xyz));
+    v.tangent   = normalize(mul( _Transform , float4( b.tangent , 0).xyz));;
+    v.uv        = b.uv;
+
+    _VertBuffer[sID] = v;
+
+  }else{
+
+
+  }
+
+}
+
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
 
   int pID = threadID + u3GroupID.x * NR_THREADS;
 
@@ -72,3 +120,4 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
   }
 
 }
+

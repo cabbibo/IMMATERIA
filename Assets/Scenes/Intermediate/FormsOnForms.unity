@@ -898,6 +898,16 @@ PrefabInstance:
       propertyPath: transform
       value: 
       objectReference: {fileID: 1520932703}
+    - target: {fileID: 539685244905434240, guid: e09f7a772728eae4c91b6a238dfce044,
+        type: 3}
+      propertyPath: boundName
+      value: _DisformerPosition
+      objectReference: {fileID: 0}
+    - target: {fileID: 539685244905434240, guid: e09f7a772728eae4c91b6a238dfce044,
+        type: 3}
+      propertyPath: boundTransform
+      value: 
+      objectReference: {fileID: 1520932703}
     - target: {fileID: 4342550956997456164, guid: e09f7a772728eae4c91b6a238dfce044,
         type: 3}
       propertyPath: data
@@ -988,6 +998,11 @@ PrefabInstance:
       propertyPath: data
       value: 
       objectReference: {fileID: 1463586040}
+    - target: {fileID: 4342550956997456187, guid: e09f7a772728eae4c91b6a238dfce044,
+        type: 3}
+      propertyPath: kernelName
+      value: Default
+      objectReference: {fileID: 0}
     - target: {fileID: 4342550957166935269, guid: e09f7a772728eae4c91b6a238dfce044,
         type: 3}
       propertyPath: data

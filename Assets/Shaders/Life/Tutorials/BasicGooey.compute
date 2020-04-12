@@ -9,7 +9,7 @@ struct Vert{
   float2 debug;
 };
 
-float4x4 _TransformBase;
+float4x4 _Transform;
 
 RWStructuredBuffer<Vert> _VertBuffer;
 RWStructuredBuffer<Vert> _SkeletonBuffer;
@@ -33,8 +33,8 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
     Vert b = _SkeletonBuffer[safeID( pID , _SkeletonBuffer_COUNT )];
 
 
-    float3 anchorPosition =  mul( _TransformBase , float4( b.pos , 1)).xyz;
-    float3 anchorNormal = normalize(mul( _TransformBase , float4( b.nor , 0).xyz));
+    float3 anchorPosition =  mul( _Transform , float4( b.pos , 1)).xyz;
+    float3 anchorNormal = normalize(mul( _Transform , float4( b.nor , 0).xyz));
 
     Vert v = _VertBuffer[ sID ];
 
@@ -48,7 +48,7 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
     v.vel *= .98;
 
     v.nor       = anchorNormal;
-    v.tangent   = normalize(mul( _TransformBase , float4( b.tangent , 0).xyz));;
+    v.tangent   = normalize(mul( _Transform , float4( b.tangent , 0).xyz));;
     v.uv        = b.uv;
 
     _VertBuffer[sID] = v;
