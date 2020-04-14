@@ -28,8 +28,8 @@ if you are just a 'show me a code' person, download the repo, go into scenes, an
 ### Intermediate ( Coming Soon )
 
 7) [Scenes/Intermediate/FormsOnForms](https://youtu.be/GC5f3d3uanM)
-8) [Scenes/Intermediate/FormsOnFormsOnForms]
-9) [Scenes/Intermediate/CreatingCustomLifeform]
+8) [Scenes/Intermediate/FormsOnFormsOnForms](https://youtu.be/Vsf-uR1EpQc)
+9) [Scenes/Intermediate/CreatingCustomLifeform](https://youtu.be/qudxL2_Ynr8)
 
   
 ### Advanced ( Coming Soon )
