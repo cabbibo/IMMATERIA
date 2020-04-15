@@ -12,7 +12,10 @@ public class TubeTriangles : IndexForm {
   public TubeVerts verts;
 
   public override void SetCount(){
-    toIndex = verts;
+
+    //print( toIndex );
+    if( toIndex == null ){ toIndex= GetComponent<Form>();}
+    verts = (TubeVerts)toIndex;
     numTubes = verts.numTubes;
     width = verts.width;
     length = verts.length;

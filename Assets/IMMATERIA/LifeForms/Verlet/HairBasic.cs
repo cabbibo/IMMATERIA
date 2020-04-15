@@ -10,9 +10,7 @@ public class HairBasic : Cycle {
   public Life set;
   public Life collision;
   
-  public ConstraintLife constraint0;
-  public ConstraintLife constraint1;
-
+  public ConstraintLife constraint;
   public Form Base;
   public Hair Hair;
 
@@ -22,6 +20,10 @@ public int numFrames;
   public override void Create(){
 
     transformArray = new float[16];
+    if( Hair == null ){ Hair = gameObject.AddComponent<Hair>(); }
+    if( set == null ){ set = gameObject.AddComponent<Life>(); }
+    if( collision == null ){ collision = gameObject.AddComponent<Life>(); }
+    if( constraint == null ){ constraint = gameObject.AddComponent<ConstraintLife>(); }
 
     
     /*  
@@ -30,8 +32,7 @@ public int numFrames;
 
     SafePrepend( set );
     SafePrepend( collision );
-    SafePrepend( constraint0 );
-    SafePrepend( constraint1 );
+    SafePrepend( constraint );
     SafePrepend( Hair );
 
     //Cycles.Insert( 4 , Base );
@@ -49,15 +50,9 @@ public int numFrames;
     collision.BindPrimaryForm("_VertBuffer", Hair);
     collision.BindForm("_BaseBuffer", Base ); 
 
-    constraint0.BindInt("_Pass" , 0 );
-    constraint0.BindFloat( "_HairLength"  , () => Hair.length );
-    constraint0.BindPrimaryForm("_VertBuffer", Hair);
-    constraint0.BindInt( "_NumVertsPerHair" , () => Hair.numVertsPerHair );
-
-    constraint1.BindInt("_Pass" , 1 );
-    constraint1.BindFloat( "_HairLength"  , () => Hair.length );
-    constraint1.BindPrimaryForm("_VertBuffer", Hair);
-    constraint1.BindInt( "_NumVertsPerHair" ,  () => Hair.numVertsPerHair );
+    constraint.BindFloat( "_HairLength"  , () => Hair.length );
+    constraint.BindPrimaryForm("_VertBuffer", Hair);
+    constraint.BindInt( "_NumVertsPerHair" , () => Hair.numVertsPerHair );
 
     set.BindFloat( "_HairLength"  , () => Hair.length);
     set.BindFloat( "_HairVariance"  , () => Hair.variance);

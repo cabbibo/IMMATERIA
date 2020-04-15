@@ -142,7 +142,7 @@ public class Life : Cycle {
         }
         catch
         {
-            DebugThis("Your Kernel name couldn't be found");
+            DebugThis( kernelName + " : Couldn't be found");
                #if UNITY_EDITOR
                 EditorGUIUtility.PingObject(this.gameObject);
                 #endif
@@ -233,14 +233,19 @@ public class Life : Cycle {
     }
 
 
+
     // if its still true than we can dispatch
     if ( allBuffersSet ){
       if( debug ) print( "name : " + kernelName + " Num groups : " + numGroups );
-      shader.Dispatch( kernel,numGroups ,1,1);
+      DoDispatch();
     }
 
     AfterDispatch();
 
+  }
+
+  public virtual void DoDispatch(){
+    shader.Dispatch( kernel,numGroups ,1,1);
   }
 
   public virtual void _SetInternal(){    
@@ -254,9 +259,6 @@ public class Life : Cycle {
   public virtual void SetShaderValues(){}
 
   private void SetBuffer(string name , Form form){
-    //print(form);
-    //print(name);
-
 
     if( form != null){
 
@@ -270,43 +272,9 @@ public class Life : Cycle {
         DebugThis("YOUR BUFFER : " + name +  " IS NULL!");
       }
     }else{
- //     print("WAHT YR FORM IS NULL");
-//      print( name );
+      DebugThis("YOUR FORM : " + name + " IS NULL");
     }
   }
-
-  /*public void BindAttribute( string nameInShader, string attributeName , System.Object obj ){
-   
-    BoundAttribute a = new BoundAttribute();
-    a.nameInShader = nameInShader;
-    a.attributeName = attributeName;
-    a.boundObject = obj;
-    a.info = obj.GetType().GetField(attributeName);
-
-
-//    a.lamba = () -> obj.GetMethod
-    bool replaced = false;
-    int id = 0;
-
-//    print( boundAttributes );
-
-    foreach( BoundAttribute ba in boundAttributes){
-
-      if( ba.nameInShader == nameInShader ){
-        boundAttributes[id] = a;
-        //DebugThis( ba.nameInShader + " is being rebound" );
-        replaced = true;
-        break;
-      }
-
-      id ++;
-    }
-
-    if( replaced == false ){  boundAttributes.Add(a); }
-  
-  }*/
-
-
 
    public void BindInt(string nameInShader, Func<int> lambda ){
 
@@ -531,70 +499,6 @@ public class Life : Cycle {
     if( replaced == false ){  boundBufferList.Add( attribute); }
 
   }
-
-  /*
-  public void BindAttributes(){
-    
-    foreach(  BoundAttribute b in boundAttributes ){
-
-
-      string s = "";
-      if( debug == true ){
-        s +="UNIFORM : "  + b.nameInShader;
-      }
-
-      if( b.info == null ){
-        print("------------------------------");
-        print("THIS ATTRIBUTE DOESN'T EXIST: ");
-        print("Bound Object: " + b.boundObject);
-        print("Attribute Name: " + b.attributeName);
-        print("Name In Shader: " + b.nameInShader);
-        print("I AM ON GAME OBJECT: " + this);
-        print("------------------------------");
-      }
-
-      if( b.info.FieldType == typeof(float) ){
-        float value = (float)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetFloat(b.nameInShader,value);
-      }else if(b.info.FieldType == typeof(float[]) ){
-        float[] value = (float[])b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetFloats(b.nameInShader,value);
-      }else if( b.info.FieldType == typeof(int) ){
-        int value = (int)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetInt(b.nameInShader,value);
-      }else if( b.info.FieldType == typeof(Vector3)){
-        Vector3 value = (Vector3)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetVector(b.nameInShader,value);
-      }else if( b.info.FieldType == typeof(Vector4)){
-        Vector4 value = (Vector4)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetVector(b.nameInShader,value);
-      }else if( b.info.FieldType == typeof(Matrix4x4)){
-        Matrix4x4 value = (Matrix4x4)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetMatrix(b.nameInShader,value);
-      }else if( b.info.FieldType == typeof(Texture) ){
-        Texture value = (Texture)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetTexture(kernel,b.nameInShader,value);
-      }else if( b.info.FieldType == typeof(Texture2D) ){
-        Texture2D value = (Texture2D)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetTexture(kernel,b.nameInShader,value);
-      }else if(b.info.FieldType == typeof(ComputeBuffer) ){
-        ComputeBuffer value = (ComputeBuffer)b.info.GetValue(b.boundObject);
-        if( debug == true ){ print( s + " || VALUE : " + value);}
-        shader.SetBuffer(kernel,b.nameInShader,value);
-      }
-
-    }
-
-
-  }*/
 
   public void BindAttributes(){
     

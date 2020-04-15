@@ -5,6 +5,12 @@ using UnityEngine;
 namespace IMMATERIA {
 public class TubeTransfer : TransferLifeForm {
   
+
+  public override void Create(){
+
+    if( verts == null ){ verts = gameObject.AddComponent<TubeVerts>();}
+    if( triangles == null ){ triangles = gameObject.AddComponent<TubeTriangles>();}
+  }
   
   public override void Bind(){
 

@@ -56,7 +56,7 @@ public class TransferLifeForm : Cycle {
     data.BindCameraData( transfer );
     
     transfer.BindFloat("_Radius" , () => this.radius ); 
-    transfer.BindFloats("_Transform", () => this.transformArray);
+    transfer.BindMatrix("_Transform", () => transform.localToWorldMatrix );
     
     Bind();
   }
@@ -67,8 +67,6 @@ public class TransferLifeForm : Cycle {
 
 
     if( active == true ){
-
-      transformArray = HELP.GetMatrixFloats( transform.localToWorldMatrix );
 
       if( showBody == true ){
         body.active = true;

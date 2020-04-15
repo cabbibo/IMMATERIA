@@ -8,7 +8,6 @@ public class IndexForm : Form {
 
 
   public Form toIndex;
-  protected MaterialPropertyBlock mpb;
 
   public override void _Create(){
     if( mpb == null ){ mpb = new MaterialPropertyBlock(); }

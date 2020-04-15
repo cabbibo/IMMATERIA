@@ -115,14 +115,14 @@ void GetInfo( in int id ,
     int row = idInTube / (_TubeWidth+1);
     int col = id % (_TubeWidth+1);
 
-    rowVal =  (float(row) / float(_TubeLength)) ;
+    rowVal =  (float(row) / float(_TubeLength-1)) ;
     colVal =  (float(col%_TubeWidth)/float(_TubeWidth)) ;
 
     float3 upPos; float3 doPos;
 
     pos = cubicFromValue( rowVal , particleID , upPos , doPos );
 
-    z = normalize(upPos - pos);
+    z = normalize(doPos - pos);
     x = normalize(cross( z , float3(1,0,0)) );
     y = normalize(cross( x , z));
 

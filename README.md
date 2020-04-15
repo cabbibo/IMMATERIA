@@ -33,9 +33,10 @@ if you are just a 'show me a code' person, download the repo, go into scenes, an
 
   
 ### Advanced ( Coming Soon )
-10) Scenes/Advanced/Hair
-11) Scenes/Advanced/SmoothGooMesh
+10) Scenes/Advanced/HairOnStaticMesh
+10) Scenes/Advanced/HairOnDynamicMesh
 12) Scenes/Advanced/HairOnScene
+11) Scenes/Advanced/SmoothGooMesh
 13) Scenes/Advanced/SpacePuppy
 14) Scenes/Advanced/SDFBaker
 15) Scenes/Advanced/CallGraph
