@@ -1,0 +1,108 @@
+﻿#pragma kernel Flow
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+
+struct Anchor{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tan;
+  float2 uv;
+  float used;
+  float3 triIDs;
+  float3 triWeights;
+  float3 debug;
+};
+
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Anchor> _AnchorBuffer;
+
+int _VertBuffer_COUNT;
+int _AnchorBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
+
+
+
+
+float4x4 rotation(float3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return float4x4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
+
+float3 newAxis( float id ){
+  float3 a = float3(hash(id),hash(id*10),hash(id*20));
+  return a * 2 - 1;
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  Anchor anchor = _AnchorBuffer[safeID(pID / ( _VertBuffer_COUNT/_AnchorBuffer_COUNT),_AnchorBuffer_COUNT)];
+
+
+
+  if( vert.life == 0 ){ vert.life = hash(float(pID));}
+  
+
+  if( length(vert.axis) == 0 ){ vert.axis = newAxis(float(pID)); }
+
+  if( vert.life < 0 ){
+   // float3 pos = float3(vert.uv.x/_MapSize,0, vert.uv.y/_MapSize );
+    float p = float(pID);
+    vert.pos = anchor.pos; //worldPos(pos);
+    vert.vel = anchor.vel;
+    vert.life = abs(vert.life)+1;
+    vert.life %= 1;
+    vert.life += 1;
+  
+  }else{
+
+    float3 force = float3(0,0,0);
+    force += .4*curlNoise(vert.pos * 3);
+    force += anchor.nor;
+
+    vert.vel += force * .00004 * (1+hash(pID*1021.))/2;
+
+    vert.life -= .001 * (3+sin(float(pID)));
+    vert.pos += vert.vel;
+
+    vert.vel *= .95;
+
+  }
+
+
+  vert.nor = mul(rotation(vert.axis,vert.life*10*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
+  
+  _VertBuffer[pID] = vert;
+
+}

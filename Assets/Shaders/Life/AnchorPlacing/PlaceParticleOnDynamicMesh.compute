@@ -60,6 +60,7 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
     p.pos = v1.pos * p.triWeights.x +  v2.pos * p.triWeights.y + v3.pos * p.triWeights.z;
     p.nor = v1.nor * p.triWeights.x +  v2.nor * p.triWeights.y + v3.nor * p.triWeights.z;
     p.uv  = v1.uv  * p.triWeights.x +  v2.uv  * p.triWeights.y + v3.uv  * p.triWeights.z;
+    p.vel = v1.vel  * p.triWeights.x +  v2.vel  * p.triWeights.y + v3.vel  * p.triWeights.z;
     //p.debug.xy  = v1.debug  * p.triWeights.x +  v2.debug  * p.triWeights.y + v3.debug  * p.triWeights.z;
 
     _ParticleBuffer[sID] = p;

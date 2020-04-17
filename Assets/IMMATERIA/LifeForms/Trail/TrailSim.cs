@@ -11,7 +11,7 @@ public class TrailSim : Simulation
 
 
   public override void Create(){
-    SafeInsert(transport);
+    if( transport ) SafeInsert(transport);
   }
 
   public override void Bind(){
@@ -21,10 +21,12 @@ public class TrailSim : Simulation
     TrailParticles tp = (TrailParticles)form;
     life.BindInt( "_ParticlesPerTrail" , () => tp.particlesPerTrail );
 
-    transport.BindPrimaryForm("_ParticleBuffer" ,head);
-    transport.BindForm("_VertBuffer" ,form);
-    transport.BindInt( "_NumVertsPerHair" , () => tp.particlesPerTrail );
-    data.BindCameraData(transport);
+    if( transport ){
+      transport.BindPrimaryForm("_ParticleBuffer" ,head);
+      transport.BindForm("_VertBuffer" ,form);
+      transport.BindInt( "_NumVertsPerHair" , () => tp.particlesPerTrail );
+      data.BindCameraData(transport);
+    }
 
   }
 

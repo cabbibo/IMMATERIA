@@ -30,7 +30,7 @@ float _CameraFar;
 
 float3 getPos( float x , float y , float3 f , float3 r , float3 u , float3 p){
   
-    float depth = _DepthTexture.SampleLevel(sampler_DepthTexture, float2(x,y), 0);
+    float depth = _DepthTexture.SampleLevel(sampler_DepthTexture, float2(x,y), 0).r;
   return p + r * (x-.5)  * _CameraSize * 2 + u * (y-.5) * _CameraSize*2 +  f * ( _CameraNear + (_CameraFar-_CameraNear) * (1-depth) );
 }
 
@@ -43,7 +43,7 @@ float3 getNor(  float x , float y , float3 f , float3 r , float3 u , float3 p ){
   float3 up  = getPos(x  , y+ delta, f , r , u , p );
   float3 dow = getPos(x  , y- delta, f , r , u , p );
 
-  float3 nor = normalize(cross((le-ri)*1000 , ( up-dow) * 1000));
+  float3 nor = -normalize(cross((le-ri)*1000 , ( up-dow) * 1000));
 
   return nor;
 

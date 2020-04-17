@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 namespace IMMATERIA {
-public class BindDepthTextureData : Binder
+public class BindOrthographicDepthTextureData : Binder
 {
 
-  public DepthRenderer depthRenderer;
+  public OrthographicDepthRenderer depthRenderer;
 
   public override void Bind(){
 

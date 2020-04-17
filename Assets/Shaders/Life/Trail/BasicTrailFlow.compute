@@ -1,0 +1,80 @@
+﻿#pragma kernel Flow
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+float4x4 _Transform;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _HeadBuffer;
+
+int _ParticlesPerTrail;
+
+int _VertBuffer_COUNT;
+int _HeadBuffer_COUNT;
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
+#include "../../Chunks/ParticleAxisHelpers.cginc"
+
+
+float3 DoRemitPosition(int p){
+    int whichHead = p / _ParticlesPerTrail;
+   return _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].pos;
+}
+
+float3 DoRemitVelocity(int p){return 0;}
+
+
+float3 DoForce( inout Vert vert , int pID){
+    float3 force = 0;
+
+    int idInTrail = pID % _ParticlesPerTrail;
+    int whichHead = pID / _ParticlesPerTrail;
+
+    float3 headPos = _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].pos;
+
+    float3 targetPos = 0;
+    if( idInTrail == 0 ){
+        targetPos = headPos;
+    }else{
+        targetPos = _VertBuffer[safeID(pID-1,_VertBuffer_COUNT)].pos;
+    }
+    force += targetPos - vert.pos;
+    force *= .1;
+
+
+    // If our head is remitting we need to be remitting too!
+    if( _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].life <= 0 || _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].life >= 1){
+        vert.pos = headPos;
+        vert.vel = 0;
+        force = 0;
+    }
+    
+    //vert.pos = 0;
+    return force;
+}
+
+
+float DoLife( Vert v , int pID ){
+    return .0004 * (3+sin(float(pID)));
+}
+
+
+float DoDampening( Vert v , int pID ){
+    return .4;
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint3 id : SV_DispatchThreadID) {
+    #include "../../Chunks/SimplifiedSimulation.cginc"
+}

@@ -62,7 +62,7 @@ public int numFrames;
     collision.BindFloat( "_HairLength"  , () => Hair.length );
     collision.BindFloat( "_HairVariance"  , () => Hair.variance );
     collision.BindInt( "_NumVertsPerHair" , () => Hair.numVertsPerHair );
-    collision.BindFloats( "_Transform" , () => this.transformArray );
+    collision.BindMatrix( "_Transform" , () => transform.localToWorldMatrix );
 
     data.BindCameraData(collision);
 
@@ -74,9 +74,7 @@ public int numFrames;
 
   numFrames += 1;
 
-  if( numFrames == 10 ){ Set(); Activate(); }    
-    //set.active = false;
-    transformArray = HELP.GetMatrixFloats( transform.localToWorldMatrix );
+  if( numFrames == 3 ){ Set(); Activate(); }    
   }
 
   public void Set(){

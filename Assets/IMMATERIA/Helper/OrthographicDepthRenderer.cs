@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace IMMATERIA {
-public class DepthRenderer : Cycle
+public class OrthographicDepthRenderer : Cycle
 {
 
   public int renderSize;
@@ -18,11 +18,11 @@ public class DepthRenderer : Cycle
 
 
 
-
   private RenderTextureDescriptor textureDescriptor;
 
   public override void Create(){
-    
+    textureDescriptor = new RenderTextureDescriptor( renderSize,renderSize,RenderTextureFormat.Depth,24);
+    texture = RenderTexture.GetTemporary( textureDescriptor );
     Set();
   }
 
@@ -33,18 +33,24 @@ public class DepthRenderer : Cycle
 
 
   public void Set(){
-    
-    textureDescriptor = new RenderTextureDescriptor( renderSize,renderSize,RenderTextureFormat.Depth,24);
-    texture = RenderTexture.GetTemporary( textureDescriptor );
+   
+
+ 
+    cam.targetTexture = texture;
     cam.orthographicSize = camSize; 
-    //cam.depthTextureMode = DepthTextureMode.Depth;
+    cam.depthTextureMode = DepthTextureMode.DepthNormals;
+    ///print( texture.depth);
     cam.SetTargetBuffers( texture.colorBuffer , texture.depthBuffer );
     cam.Render();
 
-    debugRenderer.sharedMaterial.SetTexture("_MainTex", texture );
-    debugRenderer.transform.localScale = Vector3.one * cam.orthographicSize * 2;
 
-  RenderTexture.ReleaseTemporary( texture );
+if( debugRenderer ){
+     debugRenderer.sharedMaterial.SetTexture("_MainTex", texture );
+    debugRenderer.transform.localScale = Vector3.one * cam.orthographicSize * 2;
+}
+
+ // RenderTexture.ReleaseTemporary( texture );
+ 
 
   }
 

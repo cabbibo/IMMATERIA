@@ -1,3 +1,4 @@
+
 # IM || MATERIA
 Hi there and welcome to the **IM || MATERIA** readme!
 
@@ -13,33 +14,66 @@ And plan on doing weekly streams ( though I’m not quite sure when! ) If you wo
   
   
 
-# Examples:
+# Examples / Tutorials:
 if you are just a 'show me a code' person, download the repo, go into scenes, and start playing. Below are video tutorials of me setting up each one of the example scenes 
 
 
 ### Beginner
-1) [Scenes/Beginner/MyFirstReality](https://youtu.be/ByIYB63Cre8)
-2) [Scenes/Beginner/MyFirstSimulation](https://youtu.be/LUkdVDGZGzY)
-3) [Scenes/Beginner/MyFirstBody](https://youtu.be/-d8re8Cn9FY)
-4) [Scenes/Beginner/MyFirstTransferLifeForm](https://youtu.be/pouFnB6GAm4)
-5) [Scenes/Beginner/MyFirstGooeyMesh](https://youtu.be/H_08R0Mzq54)
-6) [Scenes/Beginner/MyFirstBinding](https://youtu.be/D5t4-ZiYMH0)
+[Scenes/Beginner/MyFirstReality](https://youtu.be/ByIYB63Cre8)
+[Scenes/Beginner/MyFirstSimulation](https://youtu.be/LUkdVDGZGzY)
+[Scenes/Beginner/MyFirstBody](https://youtu.be/-d8re8Cn9FY)
+[Scenes/Beginner/MyFirstTransferLifeForm](https://youtu.be/pouFnB6GAm4)
+[Scenes/Beginner/MyFirstGooeyMesh](https://youtu.be/H_08R0Mzq54)
+[Scenes/Beginner/MyFirstBinding](https://youtu.be/D5t4-ZiYMH0)
 
-### Intermediate ( Coming Soon )
+### Intermediate
 
-7) [Scenes/Intermediate/FormsOnForms](https://youtu.be/GC5f3d3uanM)
-8) [Scenes/Intermediate/FormsOnFormsOnForms](https://youtu.be/Vsf-uR1EpQc)
-9) [Scenes/Intermediate/CreatingCustomLifeform](https://youtu.be/qudxL2_Ynr8)
+[Scenes/Intermediate/FormsOnForms](https://youtu.be/GC5f3d3uanM)
+[Scenes/Intermediate/FormsOnFormsOnForms](https://youtu.be/Vsf-uR1EpQc)
+[Scenes/Intermediate/CreatingCustomLifeform](https://youtu.be/qudxL2_Ynr8)
 
-  
-### Advanced ( Coming Soon )
-10) Scenes/Advanced/HairOnStaticMesh
-10) Scenes/Advanced/HairOnDynamicMesh
-12) Scenes/Advanced/HairOnScene
-11) Scenes/Advanced/SmoothGooMesh
-13) Scenes/Advanced/SpacePuppy
-14) Scenes/Advanced/SDFBaker
-15) Scenes/Advanced/CallGraph
+
+
+## TOPICS: 
+I am hoping to record videos of each the following scenes, but for now, you can find them as put together scenes in the repository
+
+**_Hair_** 
+Scenes/Hair/HairOnStaticMesh
+Scenes/Hair/HairOnDynamicMesh
+Scenes/Hair/HairOnScene 
+Scenes/Hair/RopeOnTransformBuffers 
+
+**_Particles_** 
+Scenes/Particles/EmitFromMesh
+Scenes/Particles/DisformedByTransformBuffer 
+Scenes/Particles/ParticlesWithTrails 
+Scenes/Particles/MeshesAsParticles
+
+**_Meshes_**
+Scenes/Meshes/MeshesAsGrass ( Coming Soon )
+Scenes/Meshes/MeshesAsRope ( Coming Soon )
+Scenes/Meshes/SkinnedMeshRenderer ( Coming Soon )
+Scenes/Meshes/HairOnSkinnedMeshRenderer ( Coming Soon )
+
+**_SDF_**
+Scenes/SDF/MeshToSDF ( Coming Soon )
+Scenes/SDF/SDFToMesh ( Coming Soon )
+Scenes/SDF/ParticlesOnSDF ( Coming Soon )
+
+
+
+**_Cloth_**
+Scenes/Cloth/ClothOnSDF ( Coming Soon )
+Scenes/Cloth/ClothOnTransformBuffer ( Coming Soon )
+Scenes/Cloth/ClothPinned ( Coming Soon )
+Scenes/Cloth/HairyCloth ( Coming Soon )
+
+**_GOO_** 
+Scenes/Goo/SmoothGooMesh ( Coming Soon )
+Scenes/Goo/HumanDisformedGoo ( Coming Soon )
+
+
+
 
 # Cheat Sheet
 Here is some hopefully simple and useful information
@@ -629,4 +663,4 @@ Data.cs should be custom written for every project. The one in this project cont
     
 -   Calling ```DebugThis``` in any cycle will make it so you can click on the game object that is firing the debug call.
 
-- Debug draws to the debug layer! so you are gonna need that
+- Debug draws to the debug layer! so you are gonna need that layer

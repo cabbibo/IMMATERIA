@@ -29,7 +29,6 @@ float3 _CameraUp;
 #include "../../Chunks/cubicCurve.cginc"
 #include "../../Chunks/safeID.cginc"
 
-#include "../../Chunks/terrainCompute.cginc"
 
 
 
@@ -175,7 +174,7 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
 
 //float4 vals = _HeightMap.SampleLevel(sampler_HeightMap, (baseParticle.pos.xz-.5) * _MapSize  , 0);//tex2Dlod(_HeightMap , float4(pos.xz * _MapSize,0,0) );
         
-    float r =   baseParticle.debug.x * .08;
+    float r =   _Radius;
     //if( baseParticle.debug.x < .1 ){ r = 0;}
 
     float3 outVec = (sin(angle) *x - cos(angle) * y);// * r;

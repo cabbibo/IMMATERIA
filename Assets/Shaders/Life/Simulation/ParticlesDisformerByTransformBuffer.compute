@@ -1,0 +1,69 @@
+﻿#pragma kernel Flow
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 ogPos;
+  float3 axis;
+  float life;
+};
+
+
+struct Transform{
+    float4x4 localToWorld;
+    float4x4 worldToLocal;
+};
+
+float4x4 _Transform;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Transform> _TransformBuffer;
+
+int _VertBuffer_COUNT;
+int _TransformBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
+
+
+
+#include "../../Chunks/ParticleAxisHelpers.cginc"
+
+
+float3 DoRemitPosition(int p){
+   return mul( _Transform, float4( hash(float(p)*20)-.5,0 , hash(float(p)*231)-.5,1)).xyz;
+}
+
+float3 DoRemitVelocity(int p){return 0;}
+
+
+float3 DoForce(  Vert vert , int pID){
+    float3 force = 0;
+    
+    force += 1.4*curlNoise(vert.pos * .4);
+
+    force +=  mul( _Transform, float4( 0,1 ,0,0)).xyz;
+
+    for( int i = 0; i < _TransformBuffer_COUNT; i++){
+        float3 tPos = mul(_TransformBuffer[i].localToWorld,float4(0,0,0,1));
+        float3 d = tPos - vert.pos;
+        force += 10*normalize(d)/(1+length(d));
+    }
+    force *= .00004 * (1+hash(pID*1021.))/2;
+
+    return force;
+}
+
+float DoLife( Vert v , int pID ){
+    return .0004 * (3+sin(float(pID)));
+}
+
+float DoDampening( Vert v , int pID ){ return .98; }
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint3 id : SV_DispatchThreadID) {
+    #include "../../Chunks/SimplifiedSimulation.cginc"
+}

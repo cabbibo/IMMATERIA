@@ -2,10 +2,12 @@
 
 struct Vert{
   float3 pos;
+  float3 vel;
   float3 nor;
-  float3 tangent;
+  float3 tan;
   float2 uv;
-  float debug;
+  float2 debug;
+
 };
 
 
@@ -16,10 +18,7 @@ struct Particle{
   float3 nor;
   float3 tan;
   float2 uv;
-  float used;
-  float3 triIDs;
-  float3 triWeights;
-  float3 debug;
+  float2 debug;
 
   };
 
@@ -34,7 +33,7 @@ int _SkeletonBuffer_COUNT;
 int _BaseBuffer_COUNT;
 
 
-float _Scale;
+float _Radius;
 int _VertsPerMesh;
 
 
@@ -54,9 +53,9 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
 
 
 
-    _VertBuffer[pID].pos      = p.pos + b.pos * _Scale;// = v;
+    _VertBuffer[pID].pos      = p.pos + (b.pos.x * normalize(p.nor) + b.pos.z * normalize(p.tan)  + b.pos.y * normalize(cross(p.nor,p.tan))) * _Radius;// = v;
     _VertBuffer[pID].nor      = b.nor;
-    _VertBuffer[pID].tangent  = b.tangent;
+    _VertBuffer[pID].tan      = b.tan;
     _VertBuffer[pID].uv       = b.uv;
 
 
