@@ -63,6 +63,8 @@ sysinfo.txt
 
 *.DNA
 *.dna
+/[Ss]creenshotFolder/
+/[Bb]akedMeshes/
 
 # Crashlytics generated file
 crashlytics-build.properties

@@ -17,12 +17,23 @@ public class MeshFromSDF : Simulation
   public Life marchingResetLife;
 
 
+  public GameObject completedMesh;
+
+
+  public bool SaveToOBJ;
+  public string objName;
+
   public override void Create(){
 
     SafeInsert( verts );
     SafeInsert( marchingLife );
     SafeInsert( resetLife );
     SafeInsert( marchingResetLife );
+
+    if( completedMesh != null){
+      print("Got a funky mesh");
+      DestroyImmediate(completedMesh); 
+    }
 
   }
 
@@ -47,6 +58,8 @@ public class MeshFromSDF : Simulation
     marchingLife.BindVector3( "_Center"      , () => ((Form3D)form).center );
     marchingLife.BindVector3( "_Dimensions"  , () => ((Form3D)form).dimensions );
     marchingLife.BindVector3( "_Extents"     , () => ((Form3D)form).extents );
+    
+    marchingLife.BindMatrix( "_Transform", () => transform.localToWorldMatrix );
 
     marchingLife.BindTexture("Texture",() =>((Form3D)form)._texture );
 
@@ -124,9 +137,7 @@ public class MeshFromSDF : Simulation
     resetLife.YOLO();
     marchingResetLife.YOLO();
     life.YOLO();
-    //((Form3D)form).RemakeTexture();
     marchingLife.YOLO();
-   // verts.MakeMesh();
     AddVertsMesh();
   }
 
@@ -149,8 +160,6 @@ public class MeshFromSDF : Simulation
     verts.GetData(values);
 
     //Extract the positions, normals and indexes.
-
-
     for( int i  = 0; i < verts.count; i++ ){  
 
       if( values[ i * 8 + 0 ] != -1 ){
@@ -165,11 +174,9 @@ public class MeshFromSDF : Simulation
 
     }
 
-   // print( index );
-
-
-
-
+    print( positions.Count );
+    print( normals.Count );
+    print( indices.Count );
 
   }
 
@@ -193,8 +200,11 @@ public class MeshFromSDF : Simulation
     go.GetComponent<MeshFilter>().mesh = mesh;
     go.transform.parent = transform;
 
-    MeshToFile( "Testio1" , MeshToString("Testio" ,positions.ToArray(), mesh.normals,indices.ToArray() ));
+    completedMesh = go;
 
+    if( SaveToOBJ ){
+      MeshToFile( objName , MeshToString(objName ,positions.ToArray(), mesh.normals,indices.ToArray() ));
+    }
   }
 
    public static string MeshToString( string name , Vector3[] positions , Vector3[] normals , int[] triangles ) {
@@ -224,7 +234,7 @@ public class MeshFromSDF : Simulation
  
     public static void MeshToFile( string name , string info ) {
 
-      string filename = name + ".OBJ";
+      string filename = "BakedMeshes/" + name + ".OBJ";
 
         using (StreamWriter sw = new StreamWriter(filename)) 
         {

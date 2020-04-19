@@ -30,6 +30,8 @@ float3 _Dimensions;
 float3 _Extents;
 float3 _Center;
 
+float4x4 _Transform;
+
 float3 GetPos( int id){
     uint xID = id % int(_Dimensions.x);
     uint yID = (id / (int(_Dimensions.x))) % int(_Dimensions.y);
@@ -41,7 +43,7 @@ float3 GetPos( int id){
 
     float3 p = (float3(x,y,z)-float3(.5 , .5 , .5)) * _Extents *2 + _Center;//_Extents;
 
-    return mul(unity_ObjectToWorld , float4( p ,1)).xyz;
+    return mul(_Transform , float4( p ,1)).xyz;
  
 }
 
@@ -92,7 +94,7 @@ varyings vert (uint id : SV_VertexID){
 
 
       Vert v = _TransferBuffer[base % _Count];
-      o.worldPos = GetPos( base )  + extra * (1/v.dist) * _Size;
+      o.worldPos = GetPos( base )  + extra * min(abs((1/(20*v.dist))) * _Size,_Size);
      // o.worldPos = 0  + extra;// * _Size;
       o.uv = uv;
       o.pos = mul (UNITY_MATRIX_VP, float4(o.worldPos,1.0f));

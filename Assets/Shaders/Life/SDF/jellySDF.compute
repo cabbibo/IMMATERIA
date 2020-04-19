@@ -316,8 +316,8 @@ float3 GetPos( int id){
 
     float3 p = (float3(x,y,z)-float3(.5 , .5 , .5)) * _Extents *2 + _Center;//_Extents;
 
-
-   return p;
+  
+   return mul(_Transform, float4( p ,1)).xyz;
 }
 
 
