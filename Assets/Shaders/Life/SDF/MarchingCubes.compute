@@ -1,0 +1,194 @@
+﻿#pragma kernel March
+#pragma kernel Reset
+
+
+
+
+#include "../../Chunks/marchingCubeTables.cginc"
+SamplerState _LinearClamp;
+
+float _Target;// = 0.04;
+
+
+float3 _Center;
+float3 _Extents;
+float3 _Dimensions;
+
+struct F
+{ 
+  float  dist;
+  float3 nor;
+};
+
+
+struct Vert
+{
+  float3 pos;
+  float3 nor;
+  float2 debug;
+};
+
+RWStructuredBuffer<F> _VolumeBuffer;
+RWStructuredBuffer<Vert> _VertBuffer;
+
+Texture3D<float4> Texture;
+
+// edgeConnection lists the index of the endpoint vertices for each of the 12 edges of the cube
+static int2 edgeConnection[12] =
+{
+  int2(0,1), int2(1,2), int2(2,3), int2(3,0), int2(4,5), int2(5,6), int2(6,7), int2(7,4), int2(0,4), int2(1,5), int2(2,6), int2(3,7)
+};
+
+// edgeDirection lists the direction vector (vertex1-vertex0) for each edge in the cube
+static float3 edgeDirection[12] =
+{
+  float3(1.0f, 0.0f, 0.0f),float3(0.0f, 1.0f, 0.0f),float3(-1.0f, 0.0f, 0.0f),float3(0.0f, -1.0f, 0.0f),
+  float3(1.0f, 0.0f, 0.0f),float3(0.0f, 1.0f, 0.0f),float3(-1.0f, 0.0f, 0.0f),float3(0.0f, -1.0f, 0.0f),
+  float3(0.0f, 0.0f, 1.0f),float3(0.0f, 0.0f, 1.0f),float3(0.0f, 0.0f, 1.0f),float3(0.0f,  0.0f, 1.0f)
+};
+
+// vertexOffset lists the positions, relative to vertex0, of each of the 8 vertices of a cube
+static float3 vertexOffset[8] =
+{
+  float3(0, 0, 0),float3(1, 0, 0),float3(1, 1, 0),float3(0, 1, 0),
+  float3(0, 0, 1),float3(1, 0, 1),float3(1, 1, 1),float3(0, 1, 1)
+};
+
+void FillCube(int x, int y, int z, out float cube[8])
+{
+  cube[0] = _VolumeBuffer[x + y * _Dimensions.x + z * _Dimensions.x * _Dimensions.y].dist;
+  cube[1] = _VolumeBuffer[(x + 1) + y * _Dimensions.x + z * _Dimensions.x * _Dimensions.y].dist;
+  cube[2] = _VolumeBuffer[(x + 1) + (y + 1) * _Dimensions.x + z * _Dimensions.x * _Dimensions.y].dist;
+  cube[3] = _VolumeBuffer[x + (y + 1) * _Dimensions.x + z * _Dimensions.x * _Dimensions.y].dist;
+
+  cube[4] = _VolumeBuffer[x + y * _Dimensions.x + (z + 1) * _Dimensions.x * _Dimensions.y].dist;
+  cube[5] = _VolumeBuffer[(x + 1) + y * _Dimensions.x + (z + 1) * _Dimensions.x * _Dimensions.y].dist;
+  cube[6] = _VolumeBuffer[(x + 1) + (y + 1) * _Dimensions.x + (z + 1) * _Dimensions.x * _Dimensions.y].dist;
+  cube[7] = _VolumeBuffer[x + (y + 1) * _Dimensions.x + (z + 1) * _Dimensions.x * _Dimensions.y].dist;
+}
+
+
+/*float3 getNor(float3 position){
+
+
+
+
+
+}*/
+
+// GetOffset finds the approximate point of intersection of the surface
+// between two points with the values v1 and v2
+float GetOffset(float v1, float v2)
+{
+  float delta = v2 - v1;
+  return (delta == 0.0f) ? 0.5f : (_Target - v1) / delta;
+}
+
+
+#define NR_THREADS 64
+[numthreads(NR_THREADS,1,1)]
+void March (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+  
+  // Get the id using thread / group indices
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+
+
+  uint xID =  pID % _Dimensions.x;
+  uint yID = (pID / (_Dimensions.x)) % _Dimensions.y;
+  uint zID =  int(float(pID) / (_Dimensions.x * _Dimensions.y));
+
+
+  if( pID >= uint(_Dimensions.x  * _Dimensions.y * _Dimensions.z) ) return;
+
+
+  //Dont generate verts at the edge as they dont have 
+  //neighbours to make a cube from and the normal will 
+  //not be correct around border.
+  if (xID >= uint(_Dimensions.x - 1)) return;
+  if (yID >= uint(_Dimensions.y - 1)) return;
+  if (zID >= uint(_Dimensions.z - 1)) return;
+
+  float3 pos =  (float3(float(xID),float(yID),float(zID)) / _Dimensions); //float3(id);
+  float3 centre = 0;//float3(_VolDim, 0, 1) / 2.0;
+
+  float cube[8];
+  FillCube(xID, yID, zID, cube);
+
+  int i = 0;
+  int flagIndex = 0;
+  float3 edgeVertex[12];
+
+  //Find which vertices are inside of the surface and which are outside
+  for (i = 0; i < 8; i++){
+    if (cube[i] <= _Target) flagIndex |= 1 << i;
+  }
+
+  //Find which edges are intersected by the surface
+  int edgeFlags = edgeTable[flagIndex];
+
+  // no connections, return
+  if (edgeFlags == 0) return;
+
+  //Find the point of intersection of the surface with each edge
+  for (i = 0; i < 12; i++){
+
+    //if there is an intersection on this edge
+    if ((edgeFlags & (1 << i)) != 0)
+    {
+      float offset = GetOffset(cube[edgeConnection[i].x], cube[edgeConnection[i].y]);
+
+      //offset = .1;
+
+      edgeVertex[i] = pos + (vertexOffset[edgeConnection[i].x]+ offset * edgeDirection[i])/_Dimensions;
+    }
+  }
+
+  float3 size = float3(_Dimensions.x - 1, _Dimensions.y - 1, _Dimensions.z - 1);
+
+
+  //Save the triangles that were found. There can be up to five per cube
+  for (i = 0; i < 5; i++){
+    //If the connection table is not -1 then this a triangle.
+
+    int val = triTable[flagIndex][ 3 * i];
+    if(  val >= 0){
+
+
+      float3 position;
+      position = edgeVertex[triTable[flagIndex][3* i+0]];//-center;
+      _VertBuffer[pID * 15 + (3 * i + 0)].pos = (position - float3(.5,.5,.5)) * 2 * _Extents + _Center;///CreateVertex(position, centre, size);
+      _VertBuffer[pID * 15 + (3 * i + 0)].nor = Texture.SampleLevel(_LinearClamp, position, 0).yzw;//_volumeBuffer[pID].nor;
+
+      position = edgeVertex[triTable[flagIndex][ 3 * i+2]];//-center;
+      _VertBuffer[pID * 15 + (3 * i + 1)].pos = (position - float3(.5,.5,.5)) * 2 * _Extents+ _Center;
+      _VertBuffer[pID * 15 + (3 * i + 1)].nor = Texture.SampleLevel(_LinearClamp, position, 0).yzw;///1getNor(position);//_volumeBuffer[pID].nor;
+
+      position = edgeVertex[triTable[flagIndex][ 3 * i+1]];//-center; 
+      _VertBuffer[pID * 15 + (3 * i + 2)].pos = (position - float3(.5,.5,.5)) * 2* _Extents +_Center;
+      _VertBuffer[pID * 15 + (3 * i + 2)].nor = Texture.SampleLevel(_LinearClamp, position, 0).yzw;
+
+   }
+  }
+
+}
+
+
+#define NR_THREADS 64
+[numthreads(NR_THREADS,1,1)]
+void Reset(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+  
+  // Get the id using thread / group indices
+  uint pID = threadID + u3GroupID.x * NR_THREADS;
+
+      _VertBuffer[pID].pos = -1;
+      _VertBuffer[pID].nor = -1;
+      _VertBuffer[pID].debug = -1;
+
+
+
+
+}
+
+
+
+

@@ -223,7 +223,7 @@ MonoBehaviour:
   selfStop: 0
   primaryName: _VertBuffer
   primaryForm: {fileID: 72133694}
-  shader: {fileID: 7200000, guid: e39ea60711025024e9f97f99f49d9931, type: 3}
+  shader: {fileID: 7200000, guid: 0c156b7c83d20b045a04cf0b64aea279, type: 3}
   kernelName: Flow
   countMultiplier: 1
   kernel: 0
@@ -356,7 +356,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 2100000, guid: bfdba931e444ed946a647d01a3fac6e5, type: 2}
-  loadedFromFile: 1
+  loadedFromFile: 0
 --- !u!1 &759759753
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,7 +961,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 0}
-  loadedFromFile: 1
+  loadedFromFile: 0
   transforms:
   - {fileID: 1946412227}
   - {fileID: 1636740063}
@@ -1241,7 +1241,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 3138144007890964541}
-  time: 4082.1702
+  time: 22.520134
 --- !u!1 &3138144007890964515
 GameObject:
   m_ObjectHideFlags: 0
@@ -1360,7 +1360,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 0}
-  loadedFromFile: 1
+  loadedFromFile: 0
   toIndex: {fileID: 4333136389855791561}
 --- !u!114 &4333136389855791561
 MonoBehaviour:

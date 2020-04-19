@@ -1,0 +1,356 @@
+﻿
+
+// BOUNDING_BOX_POSITION 0 0 0
+// BOUNDING_BOX_SIZE 2 2 2
+
+// Your glsl signed distance function:
+float iTime = 1.;
+float hash( float n )
+{
+    return frac(sin(n)*43758.5453);
+}
+
+float noise( float3 x )
+{
+    // The noise function returns a value in the range -1.0f -> 1.0f
+
+    float3 p = floor(x);
+    float3 f = frac(x);
+
+    f       = f*f*(3.0-2.0*f);
+    float n = p.x + p.y*57.0 + 113.0*p.z;
+
+    return lerp(lerp(lerp( hash(n+0.0), hash(n+1.0),f.x),
+                   lerp( hash(n+57.0), hash(n+58.0),f.x),f.y),
+                  lerp(lerp( hash(n+113.0), hash(n+114.0),f.x),
+                   lerp( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
+}
+
+
+
+
+float udBox( float3 p, float3 b )
+{
+  return length(max(abs(p)-b,0.0));
+}
+
+
+
+
+// ROTATION FUNCTIONS TAKEN FROM
+//https://www.shadertoy.com/view/XsSSzG
+float3x3 xrotate(float t) {
+  return float3x3(1.0, 0.0, 0.0,
+                0.0, cos(t), -sin(t),
+                0.0, sin(t), cos(t));
+}
+
+float3x3 yrotate(float t) {
+  return float3x3(cos(t), 0.0, -sin(t),
+                0.0, 1.0, 0.0,
+                sin(t), 0.0, cos(t));
+}
+
+float3x3 zrotate(float t) {
+    return float3x3(cos(t), -sin(t), 0.0,
+                sin(t), cos(t), 0.0,
+                0.0, 0.0, 1.0);
+}
+
+
+float3x3 fullRotate( float3 r ){
+ 
+   return xrotate( r.x ) * yrotate( r.y ) * zrotate( r.z );
+    
+}
+
+float sdTorus( float3 p, float2 t )
+{
+  float2 q = float2(length(p.xz)-t.x,p.y);
+  return length(q)-t.y;
+}
+
+
+
+
+
+float opSmoothUnion( float d1, float d2, float k ) {
+    float h = clamp( 0.5 + 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return lerp( d2, d1, h ) - k*h*(1.0-h); }
+
+float opSmoothSubtraction( float d1, float d2, float k ) {
+    float h = clamp( 0.5 - 0.5*(d2+d1)/k, 0.0, 1.0 );
+    return lerp( d2, -d1, h ) + k*h*(1.0-h); }
+
+float opSmoothIntersection( float d1, float d2, float k ) {
+    float h = clamp( 0.5 - 0.5*(d2-d1)/k, 0.0, 1.0 );
+    return lerp( d2, d1, h ) + k*h*(1.0-h); }
+
+
+float sdEllipsoid( float3 p, float3 r )
+{
+  float k0 = length(p/r);
+  float k1 = length(p/(r*r));
+  return k0*(k0-1.0)/k1;
+}
+
+float dot2(in float3 v ) {return dot(v,v);}
+float dot2(in float2 v ) {return dot(v,v);}
+float sdCappedCone( float3 p, float h, float r1, float r2 )
+{
+  float2 q = float2( length(p.xz), p.y );
+  float2 k1 = float2(r2,h);
+  float2 k2 = float2(r2-r1,2.0*h);
+  float2 ca = float2(q.x-min(q.x,(q.y<0.0)?r1:r2), abs(q.y)-h);
+  float2 cb = q - k1 + k2*clamp( dot(k1-q,k2)/dot2(k2), 0.0, 1.0 );
+  float s = (cb.x<0.0 && ca.y<0.0) ? -1.0 : 1.0;
+  return s*sqrt( min(dot2(ca),dot2(cb)) );
+}
+
+float sdSphere( float3 p, float s )
+{
+  return length(p)-s;
+}
+
+float sdBox( float3 p, float3 b )
+{
+  float3 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
+float sdVerticalCapsule( float3 p, float h, float r )
+{
+  p.y -= clamp( p.y, 0.0, h );
+  return length( p ) - r;
+}
+
+float3 opTwist(  in float3 p )
+{
+    const float k = 10.0; // or some other amount
+    float c = cos(k*p.y);
+    float s = sin(k*p.y);
+    float2x2  m = float2x2(c,-s,s,c);
+    float3  q = float3(mul(m,p.xz),p.y);
+    return q;
+}
+
+
+
+float mod(float x, float y)
+{
+  return x - y * floor(x/y);
+}
+
+//--------------------------------
+// Modelling 
+//--------------------------------
+float map( float3 pos ){  
+    
+    pos.x += sin( pos.y) * .2;
+    pos.z += cos( pos.y * .8) * .3;
+    
+    float res = sdSphere( pos - float3(0.,1.,0.) , .8);
+    res = opSmoothSubtraction(  sdBox( pos , float3(10.,1.,10.)),res ,.3);
+    res = opSmoothSubtraction(  sdSphere( pos - float3(0.,.8,0.) , .7),res ,.3);
+    
+    res = opSmoothUnion( sdTorus(pos-float3(0.,1.2,0.),float2(1. , .01)),res ,.5);
+    res = opSmoothUnion( sdTorus(pos-float3(0.,1.,0.),float2(1.2 , .07)),res ,.2);
+    res += .03 * noise( pos * 10. );
+    
+    res -= .01 * noise( pos * 3. );
+    
+    
+    // Top Tubes
+    float3 p2 = pos;
+    float degree = atan2( p2.x , p2.z );
+    
+    float ogD = degree;
+    
+    float l = length( p2.xz );
+    
+    float segments = 20.;
+    float which = floor((degree - 3.14159  / (segments*2.)) / ( 3.14159 / segments)- 3.14159  / (segments * 2.));
+    degree = mod( degree - 3.14159  / (segments * 2.) , 3.14159  / segments );
+    degree -= 3.14159  / (segments * 2.);
+ 
+    
+    p2.x = l * sin( degree );
+    p2.z = l * cos( degree );
+    
+    p2.x += sin( p2.y * 10. + which * 2. + iTime * which * .1) * .02;
+    res = opSmoothUnion( .1 * sdVerticalCapsule( p2 - float3(0.,-(.1 + sin( 6.*which * 3.14159 / segments)),1.2),1.2 + sin(  6.*which* 3.14159 / segments), .05),res ,.1);
+    
+   
+    
+    // lil bumppies
+    
+    p2 = pos;
+    degree = atan2( p2.x , p2.z );
+    
+    ogD = degree;
+    
+    l = length( p2.xz );
+    
+    segments = 10.;
+    degree = mod( degree - 3.14159  / (segments * 2.) , 3.14159  / segments );
+    degree -= 3.14159  / (segments * 2.);
+ 
+    
+    p2.x = l * sin( degree );
+    p2.z = l * cos( degree );
+    
+    res = opSmoothSubtraction( sdSphere( p2 - float3(0.,1.2,.98),.03),res ,.2);
+    
+    
+    
+    // top dimples
+     p2 = pos;
+    degree = atan2( p2.x , p2.z );
+    
+    ogD = degree;
+    
+    l = length( p2.xz );
+    
+    segments = 2.;
+    degree = mod( degree - 3.14159  / (segments * 2.) , 3.14159  / segments );
+    degree -= 3.14159  / (segments * 2.);
+ 
+    
+    p2.x = l * sin( degree );
+    p2.z = l * cos( degree );
+    
+    res = opSmoothSubtraction( sdSphere( p2 - float3(0.,1.8,.4),.2),res ,.15);
+    
+       
+    // long tenkz
+    
+        p2 = pos;
+    degree = atan2( p2.x , p2.z );
+    
+    ogD = degree;
+    
+    
+    l = length( p2.xz );
+     segments = 6.;
+    which = floor((degree - 3.14159  / (segments*2.)) / ( 3.14159 / segments)- 3.14159  / (segments * 2.));
+    degree = mod( degree - 3.14159  / (segments * 2.) , 3.14159  / segments );
+    degree -= 3.14159  / (segments * 2.);
+ 
+    
+    p2.x = l * sin( degree );
+    p2.z = l * cos( degree );
+    
+    p2.x += sin( p2.y * 3. + which * 2. + iTime * which * .1) * .02;
+    res = opSmoothUnion( .04 * noise( pos * 5. ) * p2.y + sdVerticalCapsule( p2 - float3(0.,-(2.1 + sin( 6.*which * 3.14159 / segments)),.6 - .1*p2.y),3.2 + sin(  6.*which* 3.14159 / segments), .1 * max(-p2.y * .3,1.)),res ,.03);
+    
+    
+    float pluemVal =  .4 * noise( pos * 5. ) + sdVerticalCapsule( pos - float3(0.,-7.,0.), 8., .4  * max(.5,.4*-pos.y) );
+    pluemVal = opSmoothUnion( .2 * noise( pos * 8. ) + sdVerticalCapsule( pos - float3(0.,-7.,0.), 8., .4  * max(.5,.5*-pos.y) ),pluemVal ,.03);
+    pluemVal = opSmoothUnion( .1 * noise( pos * 9. ) + sdVerticalCapsule( pos - float3(0.,-7.,0.), 8., .4  * max(.5,.6*-pos.y) ),pluemVal ,.03);
+     
+    // long tenkz
+    
+    p2 = pos;
+    degree = atan2( p2.x , p2.z );
+    
+    ogD = degree;
+    
+    
+    l = length( p2.xz );
+     segments = 6.;
+    which = floor((degree - 3.14159  / (segments*2.)) / ( 3.14159 / segments)- 3.14159  / (segments * 2.));
+    degree = mod( degree - 3.14159  / (segments * 2.) , 3.14159  / segments );
+    degree -= 3.14159  / (segments * 2.);
+ 
+    
+    p2.x = l * sin( degree );
+    p2.z = l * cos( degree );
+    
+    p2.x += sin( p2.y * 3. + which * 2. + iTime * which * .1) * .02;
+    
+    float extras = sdVerticalCapsule( p2 - float3(0.,-8.,-.2*p2.y),8.2,.05 * max(-p2.y * .5,1.));
+    pluemVal = opSmoothSubtraction(  extras, pluemVal ,.3);
+    pluemVal = opSmoothUnion(  extras, pluemVal ,.01);
+    pluemVal = opSmoothUnion( sdVerticalCapsule(pos- float3(0.,-1.,0.), 2.,.2),pluemVal,.2);
+    pluemVal = opSmoothSubtraction( sdVerticalCapsule(pos- float3(0.,-10.,0.), 2.,1.2),pluemVal,.6);
+    
+    res = opSmoothUnion( res , pluemVal , .1 );
+    
+    return res;//float2(res,1.);
+    
+}
+
+
+#pragma kernel Sphere
+
+
+
+
+struct Volume{
+  float dist;
+  float3 nor;
+};
+
+RWStructuredBuffer<Volume> _VolumeBuffer;
+int _VolumeBuffer_COUNT;
+
+float4x4 _Transform;
+float4x4 _InverseTransform;
+
+#include "../../Chunks/safeID.cginc"
+
+float3 _Dimensions;
+float3 _Extents;
+float3 _Center;
+
+
+
+float3 GetPos( int id){
+    uint xID = id % int(_Dimensions.x);
+    uint yID = (id / (int(_Dimensions.x))) % int(_Dimensions.y);
+    uint zID = id / (int(_Dimensions.x) * int(_Dimensions.y));
+
+    float x = float(xID) / float(_Dimensions.x);
+    float y = float(yID) / float(_Dimensions.y);
+    float z = float(zID) / float(_Dimensions.z);
+
+    float3 p = (float3(x,y,z)-float3(.5 , .5 , .5)) * _Extents *2 + _Center;//_Extents;
+
+
+   return p;
+}
+
+
+
+
+
+
+float3 GetNor( float3 pos ){
+  float3 eps = float3(0.0001,0,0);
+  float3 nor = float3( map( pos-eps.xyy) - map( pos+eps.xyy)
+                     , map( pos-eps.yxy) - map( pos+eps.yxy)
+                     , map( pos-eps.yyx) - map( pos+eps.yyx));
+
+  return normalize(nor);
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Sphere(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VolumeBuffer_COUNT);
+  Volume v = _VolumeBuffer[pID];
+
+  float3 pos = GetPos( pID );
+  float d = map( pos );
+
+  v.dist = d;// pos.x * 20;//float(pID % int(_Dimensions.x))/ float(_Dimensions.x);
+  v.nor = GetNor(pos);//float3(0,1,0);
+  _VolumeBuffer[pID] = v;
+
+}
+

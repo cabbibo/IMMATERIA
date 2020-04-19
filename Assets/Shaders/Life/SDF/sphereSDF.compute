@@ -1,0 +1,91 @@
+﻿#pragma kernel Sphere
+#pragma kernel Reset
+
+
+
+
+struct Volume{
+  float dist;
+  float3 nor;
+};
+
+RWStructuredBuffer<Volume> _VolumeBuffer;
+int _VolumeBuffer_COUNT;
+
+float4x4 _Transform;
+float4x4 _InverseTransform;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/sdfFunctions.cginc"
+
+float3 _Dimensions;
+float3 _Extents;
+float3 _Center;
+
+
+float3 GetPos( int id){
+    uint xID = id % int(_Dimensions.x);
+    uint yID = (id / (int(_Dimensions.x))) % int(_Dimensions.y);
+    uint zID = id / (int(_Dimensions.x) * int(_Dimensions.y));
+
+    float x = float(xID) / float(_Dimensions.x);
+    float y = float(yID) / float(_Dimensions.y);
+    float z = float(zID) / float(_Dimensions.z);
+
+    float3 p = (float3(x,y,z)-float3(.5 , .5 , .5)) * _Extents *2 + _Center;//_Extents;
+
+
+   return mul(_Transform, float4( p ,1)).xyz;
+}
+
+
+float map( float3 pos ){
+
+  float res = 10000;
+  res = length( pos ) - .3;
+return res;
+}
+
+float3 GetNor( float3 pos ){
+  float3 eps = float3(0.0001,0,0);
+  float3 nor = float3( map( pos-eps.xyy) - map( pos+eps.xyy)
+                     , map( pos-eps.yxy) - map( pos+eps.yxy)
+                     , map( pos-eps.yyx) - map( pos+eps.yyx));
+
+  return normalize(nor);
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Sphere(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VolumeBuffer_COUNT);
+  Volume v = _VolumeBuffer[pID];
+
+  float3 pos = GetPos( pID );
+  float d = map( pos );
+
+  v.dist = d;// pos.x * 20;//float(pID % int(_Dimensions.x))/ float(_Dimensions.x);
+  v.nor = GetNor(pos);//float3(0,1,0);
+  _VolumeBuffer[pID] = v;
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Reset(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VolumeBuffer_COUNT);
+  Volume v = _VolumeBuffer[pID];
+  v.dist = 10000;// pos.x * 20;//float(pID % int(_Dimensions.x))/ float(_Dimensions.x);
+  v.nor = 10000;//GetNor(pos);//float3(0,1,0);
+  _VolumeBuffer[pID] = v;
+
+}
