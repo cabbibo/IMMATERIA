@@ -78,7 +78,9 @@ public int numFrames;
   }
 
   public void Set(){
-    set.YOLO();
+    if( Hair.loadedFromFile == false ){
+      set.YOLO();
+    }
   }
 
 

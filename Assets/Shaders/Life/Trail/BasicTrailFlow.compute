@@ -4,8 +4,9 @@ struct Vert{
   float3 pos;
   float3 vel;
   float3 nor;
-  float3 ogPos;
-  float3 axis;
+  float3 tan;
+  float2 uv;
+  float debug;
   float life;
 };
 
@@ -24,6 +25,10 @@ int _HeadBuffer_COUNT;
 #include "../../Chunks/curlNoise.cginc"
 #include "../../Chunks/ParticleAxisHelpers.cginc"
 
+
+void DoInit( inout Vert vert , float pID ){
+
+}
 
 float3 DoRemitPosition(int p){
     int whichHead = p / _ParticlesPerTrail;
@@ -48,15 +53,23 @@ float3 DoForce( inout Vert vert , int pID){
         targetPos = _VertBuffer[safeID(pID-1,_VertBuffer_COUNT)].pos;
     }
     force += targetPos - vert.pos;
-    force *= .1;
+    force *= .01;
 
-
+    float life = _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].life;
     // If our head is remitting we need to be remitting too!
-    if( _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].life <= 0 || _HeadBuffer[safeID(whichHead,_HeadBuffer_COUNT)].life >= 1){
+    if( life <= 0 || life >= 1){
         vert.pos = headPos;
         vert.vel = 0;
         force = 0;
     }
+
+    vert.nor = float3(0,0,1);//normalize( vert.vel );
+    vert.tan = float3(1,0,0);//normalize( cross( vert.nor , float3(1,0,0)));
+
+    vert.life = life;
+
+    vert.uv.x = float( idInTrail) / float( _ParticlesPerTrail);
+    vert.uv.y = float( whichHead) / float( _HeadBuffer_COUNT);
     
     //vert.pos = 0;
     return force;
@@ -64,12 +77,12 @@ float3 DoForce( inout Vert vert , int pID){
 
 
 float DoLife( Vert v , int pID ){
-    return .0004 * (3+sin(float(pID)));
+    return 0;
 }
 
 
 float DoDampening( Vert v , int pID ){
-    return .4;
+    return .8;
 }
 
 

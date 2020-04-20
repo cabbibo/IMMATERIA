@@ -43,6 +43,8 @@ public class MeshVerts : Form {
     Vector2[] uvs   = mesh.uv;
     Vector3[] nors  = mesh.normals;
     Vector4[] tans  = mesh.tangents;
+    DebugThis("" +mesh.tangents.Length );
+    DebugThis("" +mesh.vertices.Length );
 
     bool hasTan = false;
     if( tans.Length == verts.Length ){ hasTan = true; }
@@ -75,11 +77,14 @@ public class MeshVerts : Form {
 
 
       if(hasTan){
-
+      
         Vector3 tT = transform.TransformDirection( HELP.ToV3(tans[i]) ) ;
+        if( i < 10 ){
+          DebugThis( "" +tT.x );
+        }
         
-        if( transformVerts ){ tans[i] = new Vector4(tT.x , tT.y , tT.z ,1); }
-
+        if( transformVerts ){ tans[i] = new Vector4(tT.x , tT.y , tT.z ,tans[i].w); }
+      
         values[ index ++ ] = tans[i].x;
         values[ index ++ ] = tans[i].y;
         values[ index ++ ] = tans[i].z;
@@ -88,8 +93,7 @@ public class MeshVerts : Form {
         values[ index ++ ] = 0;
         values[ index ++ ] = 0;
         values[ index ++ ] = 0;
-      }
-
+      }     
 
       if( hasUV ){
         values[ index ++ ] = uvs[i].x;

@@ -1,0 +1,58 @@
+﻿#pragma kernel Transfer
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float2 debug;
+};
+
+
+
+struct Transform {
+  float4x4 localToWorld;
+  float4x4 worldToLocal;
+};
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _BaseBuffer;
+RWStructuredBuffer<Transform> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+int _BaseBuffer_COUNT;
+
+
+int _VertsPerMesh;
+
+
+#include "../../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+
+  if( pID < _VertBuffer_COUNT ){
+    
+    Vert b = _BaseBuffer[safeID(pID %_VertsPerMesh , _BaseBuffer_COUNT )];
+    Transform p = _SkeletonBuffer[safeID( pID / _VertsPerMesh , _SkeletonBuffer_COUNT )];
+
+    _VertBuffer[sID].pos      = mul( p.localToWorld , float4( b.pos , 1));// = v;
+    _VertBuffer[sID].nor      = normalize(mul( p.localToWorld , float4( b.nor , 0)).xyz);
+    _VertBuffer[sID].tangent  = normalize(mul( p.localToWorld , float4( b.tangent , 0)).xyz);;
+    _VertBuffer[sID].uv       = b.uv;
+
+
+  }
+
+}
+

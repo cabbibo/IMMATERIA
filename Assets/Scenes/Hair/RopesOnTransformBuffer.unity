@@ -248,8 +248,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -289,8 +289,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.297013, y: 0.33884814, z: -0.11412371, w: -0.88540447}
+  m_LocalPosition: {x: 7.5142627, y: 7.890009, z: -8.755898}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -475,16 +475,26 @@ PrefabInstance:
     - target: {fileID: 3006752623294966067, guid: 324e718db52567b438ec905c1d7f21b6,
         type: 3}
       propertyPath: count
-      value: 48
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 3006752623294966067, guid: 324e718db52567b438ec905c1d7f21b6,
         type: 3}
       propertyPath: saveName
-      value: entity2633520
+      value: entity5142949
       objectReference: {fileID: 0}
     - target: {fileID: 3006752623294966067, guid: 324e718db52567b438ec905c1d7f21b6,
         type: 3}
       propertyPath: loadedFromFile
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3006752623294966067, guid: 324e718db52567b438ec905c1d7f21b6,
+        type: 3}
+      propertyPath: alwaysRemake
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3006752623294966067, guid: 324e718db52567b438ec905c1d7f21b6,
+        type: 3}
+      propertyPath: active
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3006752623294966068, guid: 324e718db52567b438ec905c1d7f21b6,
@@ -682,7 +692,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 3138144007890964541}
-  time: 2365.9795
+  time: 44.046837
 --- !u!1 &3138144007890964515
 GameObject:
   m_ObjectHideFlags: 0

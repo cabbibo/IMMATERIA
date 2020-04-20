@@ -449,8 +449,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -490,8 +490,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.110506296, y: -0.44196516, z: 0.055131704, w: 0.8884907}
+  m_LocalPosition: {x: 6.037157, y: 3.9748418, z: -4.82023}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -552,9 +552,9 @@ MonoBehaviour:
   primaryName: _VertBuffer
   primaryForm: {fileID: 1482064989}
   shader: {fileID: 7200000, guid: e05afd0a9417543f995f10238084f631, type: 3}
-  kernelName: Transfer
+  kernelName: LifeTime
   countMultiplier: 1
-  kernel: 0
+  kernel: 1
   executionTime: 0
 --- !u!114 &1482064985
 MonoBehaviour:
@@ -630,7 +630,25 @@ MonoBehaviour:
   body: {fileID: 1482064985}
   showBody: 1
   skeleton: {fileID: 1627714492}
-  radius: 0.02
+  radius: 0.1
+  transformArray:
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  - 0
+  binders: []
 --- !u!4 &1482064987
 Transform:
   m_ObjectHideFlags: 0
@@ -721,14 +739,14 @@ MonoBehaviour:
   Cycles: []
   count: 26000
   saveName: entity3766773
-  alwaysRemake: 0
+  alwaysRemake: 1
   intBuffer: 0
   structSize: 16
   description: 
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 2100000, guid: 2d2db4c4fed294f37b58a496d7212c18, type: 2}
-  loadedFromFile: 1
+  loadedFromFile: 0
   heads: {fileID: 72133694}
   length: 13
   numRibbons: 1000
@@ -834,18 +852,18 @@ MonoBehaviour:
   active: 1
   data: {fileID: 3138144007890964514}
   Cycles: []
-  count: 17000
-  saveName: entity2305004
-  alwaysRemake: 0
+  count: 4000
+  saveName: entity1239228
+  alwaysRemake: 1
   intBuffer: 0
   structSize: 16
   description: 
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 2100000, guid: 5ec31fc377d637845bc7b451b442e217, type: 2}
-  loadedFromFile: 1
+  loadedFromFile: 0
   head: {fileID: 72133694}
-  particlesPerTrail: 17
+  particlesPerTrail: 4
 --- !u!114 &1627714493
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1013,7 +1031,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 3138144007890964541}
-  time: 5375.8438
+  time: 321.9574
 --- !u!1 &3138144007890964515
 GameObject:
   m_ObjectHideFlags: 0

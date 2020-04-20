@@ -8,6 +8,7 @@ public class InstancedMeshVerts : Form {
   public Form Base;
   public int numMesh;
   public int vertsPerMesh;
+  public float countMultiplier = 1;
   
   /*struct Vert{
     public Vector3 pos;
@@ -22,7 +23,7 @@ public class InstancedMeshVerts : Form {
   public override void SetCount(){ 
 
     vertsPerMesh = verts.count;
-    numMesh = Base.count;
+    numMesh = (int)((float)Base.count * countMultiplier);
 
     count = vertsPerMesh * numMesh;
 

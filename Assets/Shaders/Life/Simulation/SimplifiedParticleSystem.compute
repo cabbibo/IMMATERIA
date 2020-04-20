@@ -23,6 +23,13 @@ int _TransformBuffer_COUNT;
 #include "../../Chunks/ParticleAxisHelpers.cginc"
 
 
+
+
+void DoInit( inout Vert vert , float pID ){
+    vert.life = hash(float(pID));
+    vert.axis = newAxis(float(pID));
+}
+
 float3 DoRemitPosition(int p){
    return mul( _Transform, float4( hash(float(p)*20)-.5,0 , hash(float(p)*231)-.5,1)).xyz;
 }
@@ -37,6 +44,7 @@ float3 DoForce( inout Vert vert , int pID){
     force *= .00004 * (1+hash(pID*1021.))/2;
 
 
+    vert.nor = mul(rotation(vert.axis,vert.life*10*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
     // Giving the vert a tangent
     vert.tangent =normalize(cross( vert.axis , normalize( vert.nor )));
     

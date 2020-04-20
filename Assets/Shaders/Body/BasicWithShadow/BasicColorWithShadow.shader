@@ -1,4 +1,4 @@
-﻿Shader "Basic/Shadows/BasicColorWithShadow"
+﻿Shader "IMMAT/Basic/Shadows/BasicColorWithShadow"
 {
     Properties {
         _Color ("Color", Color) = (1,1,1,1)
@@ -38,7 +38,7 @@
               float3 worldPos :TEXCOORD1;
               float2 debug : TEXCOORD3;
               float3 eye : TEXCOORD4;
-              UNITY_SHADOW_COORDS(2)
+             LIGHTING_COORDS(5,6) 
             };
             float4 _Color;
 
@@ -61,7 +61,7 @@
                 o.eye = v.pos - _WorldSpaceCameraPos;
 
 
-                UNITY_TRANSFER_SHADOW(o,o.worldPos);
+                UNITY_TRANSFER_LIGHTING(o,o.worldPos);
 
                 return o;
             }
@@ -71,9 +71,8 @@
             fixed4 frag (v2f v) : SV_Target
             {
                 // sample the texture
-                fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos) * .5 + .5;
-                float val = -dot(normalize(_WorldSpaceLightPos0.xyz),normalize(v.nor));
-
+                fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos);
+                //fixed shadow = LIGHT_ATTENUATION(v) ;
                 float3 col = _Color.xyz;
 
                 col *= shadow;
@@ -84,7 +83,80 @@
         }
 
 
+Pass {
+			Tags {
+				"LightMode" = "ForwardAdd"
+			}
+Blend One One
 
+
+			CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 4.5
+            // make fog work
+            #pragma multi_compile_fogV
+            #pragma multi_compile_fwdbase nolightmap nodirlightmap nodynlightmap novertexlight
+
+            #include "UnityCG.cginc"
+            #include "AutoLight.cginc"
+
+            #include "../../Chunks/Struct16.cginc"
+            #include "../../Chunks/hsv.cginc"
+
+            sampler2D _MainTex;
+            sampler2D _ColorMap;
+
+            struct v2f { 
+              float4 pos : SV_POSITION; 
+              float3 nor : NORMAL;
+              float2 uv :TEXCOORD0; 
+              float3 worldPos :TEXCOORD1;
+              float2 debug : TEXCOORD3;
+              float3 eye : TEXCOORD4;
+             LIGHTING_COORDS(5,6) 
+            };
+            float4 _Color;
+
+            StructuredBuffer<Vert> _VertBuffer;
+            StructuredBuffer<int> _TriBuffer;
+
+            v2f vert ( uint vid : SV_VertexID )
+            {
+                v2f o;
+
+                UNITY_INITIALIZE_OUTPUT(v2f, o);
+                Vert v = _VertBuffer[_TriBuffer[vid]];
+                o.pos = mul (UNITY_MATRIX_VP, float4(v.pos,1.0f));
+
+
+                o.nor = v.nor;
+                o.uv = v.uv;
+                o.worldPos = v.pos;
+                o.debug = v.debug;
+                o.eye = v.pos - _WorldSpaceCameraPos;
+
+
+                UNITY_TRANSFER_LIGHTING(o,o.worldPos);
+
+                return o;
+            }
+
+
+
+            fixed4 frag (v2f v) : SV_Target
+            {
+                // sample the texture
+                //fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos) * .5 + .5;
+                fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos);
+                float3 col = _Color.xyz;
+
+                col *= shadow;
+                return float4(col,1);
+            }
+
+            ENDCG
+		}
     // SHADOW PASS
 
     Pass

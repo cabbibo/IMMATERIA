@@ -177,7 +177,14 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
     float3 pos = cubicFromValue( val , trailID , upPos , doPos , tang ,nor  );
 
     float3 yDir = normalize( upPos - pos );
-    float3 xDir = normalize(cross(float3(1,0,0),yDir));
+    float3 xDir;
+    if( _Direction == 1 ){
+        xDir = normalize(cross(float3(0,1,0),yDir));
+    }else if( _Direction == 1 ){
+       xDir = normalize(cross(float3(1,0,0),yDir));
+    }else{
+      xDir = normalize(cross(float3(0,1,0),yDir));
+    }
     
     float3 zDir = normalize(cross(xDir,yDir));
 
@@ -192,13 +199,11 @@ void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
 
    // will be bugggyyy
     if( _Direction == 0 ){
-      pos += baseVert.pos.y * tang * fRadius;
-      pos += baseVert.pos.z * nor* fRadius; 
+      pos += mul( rotMat , float3( baseVert.pos.y,0 , baseVert.pos.z))* fRadius;
     }else if( _Direction == 1 ){
       pos += mul( rotMat , float3( baseVert.pos.x , 0 , baseVert.pos.z))* fRadius;
     }else{
-      pos += baseVert.pos.x * tang * fRadius;
-      pos += baseVert.pos.y * nor* fRadius; 
+      pos += mul( rotMat , float3( baseVert.pos.x ,  0, baseVert.pos.y ))* fRadius;
     }
 
     float2 fUV =baseVert.uv;

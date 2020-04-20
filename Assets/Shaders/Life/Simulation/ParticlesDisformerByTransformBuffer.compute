@@ -32,7 +32,10 @@ int _TransformBuffer_COUNT;
 
 #include "../../Chunks/ParticleAxisHelpers.cginc"
 
-
+void DoInit( inout Vert vert , float pID ){
+    vert.life = hash(float(pID));
+    vert.axis = newAxis(float(pID));
+}
 float3 DoRemitPosition(int p){
    return mul( _Transform, float4( hash(float(p)*20)-.5,0 , hash(float(p)*231)-.5,1)).xyz;
 }
@@ -40,7 +43,7 @@ float3 DoRemitPosition(int p){
 float3 DoRemitVelocity(int p){return 0;}
 
 
-float3 DoForce(  Vert vert , int pID){
+float3 DoForce(  inout Vert vert , int pID){
     float3 force = 0;
     
     force += 1.4*curlNoise(vert.pos * .4);
@@ -53,7 +56,7 @@ float3 DoForce(  Vert vert , int pID){
         force += 10*normalize(d)/(1+length(d));
     }
     force *= .00004 * (1+hash(pID*1021.))/2;
-
+vert.nor = mul(rotation(vert.axis,vert.life*10*(hash(float(pID*123))+1)),float4(0,0,1,0)).xyz;
     return force;
 }
 

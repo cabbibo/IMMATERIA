@@ -48,7 +48,7 @@
             fixed4 frag (v2f v) : SV_Target
             {
 
-                float3 nor = cross(normalize(ddx(v.world)),normalize(ddy(v.world)));
+                float3 nor = -cross(normalize(ddx(v.world)),normalize(ddy(v.world)));
                 // sample the texture
                 fixed4 col = float4( nor * .5 + .5 , 1);//tex2D(_MainTex, i.uv);
                 return col;

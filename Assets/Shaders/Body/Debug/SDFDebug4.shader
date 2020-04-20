@@ -64,6 +64,7 @@ float3 GetPos( int id){
       struct varyings {
           float4 pos      : SV_POSITION;
           float3 worldPos : TEXCOORD1;
+          float3 nor      : NORMAL;
           float2 uv       : TEXCOORD4;
       };
 
@@ -96,6 +97,7 @@ varyings vert (uint id : SV_VertexID){
       Vert v = _TransferBuffer[base % _Count];
       o.worldPos = GetPos( base )  + extra * min(abs((1/(20*v.dist))) * _Size,_Size);
      // o.worldPos = 0  + extra;// * _Size;
+        o.nor =  v.nor;
       o.uv = uv;
       o.pos = mul (UNITY_MATRIX_VP, float4(o.worldPos,1.0f));
 
@@ -111,7 +113,10 @@ varyings vert (uint id : SV_VertexID){
       float4 frag (varyings v) : COLOR {
 
           //if( length( v.uv -.5) > .5 ){ discard;}
-          return float4(_Color,1 );
+
+          float3 col = v.nor * .5 + .5;
+      
+          return float4(col,1 );
       }
 
       ENDCG

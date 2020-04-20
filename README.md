@@ -1,3 +1,4 @@
+
 # IM || MATERIA
 Hi there and welcome to the **IM || MATERIA** readme!
 
@@ -46,20 +47,22 @@ I am hoping to record videos of each the following scenes, but for now, you can 
 - Scenes/Particles/EmitFromMesh
 - Scenes/Particles/DisformedByTransformBuffer 
 - Scenes/Particles/ParticlesWithTrails 
-- Scenes/Particles/MeshesAsParticles
 
 **_Meshes_**
+- Scenes/Particles/MeshesAsParticles
 - Scenes/Meshes/MeshesAsGrass
-- Scenes/Meshes/MeshesAsTrail ( Coming Soon )
-- Scenes/Meshes/MeshesAsRope ( Coming Soon )
+- Scenes/Meshes/MeshesAsTrail 
+- Scenes/Meshes/MeshesAsRope 
+
+**_Skinned Meshes_**
 - Scenes/Meshes/SkinnedMeshRenderer ( Coming Soon )
 - Scenes/Meshes/HairOnSkinnedMeshRenderer ( Coming Soon )
 
 **_SDF_**
 - Scenes/SDF/SDFBasic
-- Scenes/SDF/MeshToSDF ( Coming Soon )
-- Scenes/SDF/SDFToMesh ( Coming Soon )
-- Scenes/SDF/ParticlesOnSDF ( Coming Soon )
+- Scenes/SDF/MeshToSDF 
+- Scenes/SDF/SDFToMesh
+- Scenes/SDF/ParticlesOnSDF 
 
 
 
@@ -72,6 +75,26 @@ I am hoping to record videos of each the following scenes, but for now, you can 
 **_GOO_** 
 - Scenes/Goo/SmoothGooMesh ( Coming Soon )
 - Scenes/Goo/HumanDisformedGoo ( Coming Soon )
+
+**_Materials_**
+Scenes/MaterialExplorer includes the following materials
+- Basic Color 
+- Basic Color with Shadow
+- Normal 
+- Flat Normals
+- Basic Unity Surface Shader
+- Basic Grab Lighting
+- Toon
+- Toon with Outline
+- Toon Normal mapped
+- Reflective Material
+- Iridescent Material
+- Crazy Material
+- Triplanar Mapping ( Coming Soon )
+- Force Materials ( Coming Soon )
+- Sketch Materials ( Coming Soon )
+- Volumetric Depth Materials ( Coming Soon )
+  
 
 
 

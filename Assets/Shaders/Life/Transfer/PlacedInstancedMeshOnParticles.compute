@@ -1,0 +1,184 @@
+﻿#pragma kernel Transfer
+#pragma kernel LifeTime
+#pragma kernel LifeTimeTrail
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tan;
+  float2 uv;
+  float2 debug;
+
+};
+
+
+
+struct Particle{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tan;
+  float2 uv;
+  float2 debug;
+
+  };
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _BaseBuffer;
+RWStructuredBuffer<Particle> _SkeletonBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+int _BaseBuffer_COUNT;
+
+
+float _Radius;
+int _VertsPerMesh;
+
+int _Direction;
+
+
+#include "../../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _VertBuffer_COUNT ){
+    
+
+    Vert b = _BaseBuffer[safeID(pID %_VertsPerMesh , _BaseBuffer_COUNT )];
+    Particle p = _SkeletonBuffer[safeID( pID / _VertsPerMesh , _SkeletonBuffer_COUNT )];
+
+ 
+    float3 xDir = p.nor;
+    float3 yDir = p.tan;
+    float3 zDir = cross( xDir , yDir );
+
+    float3 c1 = normalize(float3( xDir.x , yDir.x , zDir.x ));
+    float3 c2 = normalize(float3( xDir.y , yDir.y , zDir.y ));
+    float3 c3 = normalize(float3( xDir.z , yDir.z , zDir.z ));
+
+    float3x3 rotMat = float3x3(c1,c2,c3);
+
+    float3 fPos; float3 fNor; float3 fTan;
+    if( _Direction == 0 ){
+      fPos = b.pos; fNor = b.nor; fTan = b.tan;
+    }else if( _Direction == 1 ){
+      fPos = b.pos.yxz; fNor = b.nor.yxz; fTan = b.tan.yxz;
+    }else{
+      fPos = b.pos.zxy; fNor = b.nor.zxy; fTan = b.tan.zxy;
+    }
+
+  float fRadius = _Radius;
+
+  
+
+
+    _VertBuffer[pID].pos      = p.pos + mul( rotMat , fPos) * fRadius;// = v;
+    _VertBuffer[pID].nor      = mul( rotMat , fNor);
+    _VertBuffer[pID].tan      = mul( rotMat , fTan);
+    _VertBuffer[pID].uv       = b.uv;
+
+
+  }
+
+}
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void LifeTime (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _VertBuffer_COUNT ){
+    
+
+    Vert b = _BaseBuffer[safeID(pID %_VertsPerMesh , _BaseBuffer_COUNT )];
+    Particle p = _SkeletonBuffer[safeID( pID / _VertsPerMesh , _SkeletonBuffer_COUNT )];
+
+
+    float3 xDir = p.nor;
+    float3 yDir = p.tan;
+    float3 zDir = cross( xDir , yDir );
+
+    float3 c1 = normalize(float3( xDir.x , yDir.x , zDir.x ));
+    float3 c2 = normalize(float3( xDir.y , yDir.y , zDir.y ));
+    float3 c3 = normalize(float3( xDir.z , yDir.z , zDir.z ));
+
+    float3x3 rotMat = float3x3(c1,c2,c3);
+
+    float3 fPos; float3 fNor; float3 fTan;
+    if( _Direction == 0 ){
+      fPos = b.pos; fNor = b.nor; fTan = b.tan;
+    }else if( _Direction == 1 ){
+      fPos = b.pos.yxz; fNor = b.nor.yxz; fTan = b.tan.yxz;
+    }else{
+      fPos = b.pos.zxy; fNor = b.nor.zxy; fTan = b.tan.zxy;
+    }
+
+  float fRadius = min( p.debug.y , (1-p.debug.y)*4)*_Radius;
+
+
+    _VertBuffer[pID].pos      = p.pos + mul( rotMat , fPos) * fRadius;// = v;
+    _VertBuffer[pID].nor      = mul( rotMat , fNor);
+    _VertBuffer[pID].tan      = mul( rotMat , fTan);
+    _VertBuffer[pID].uv       = b.uv;
+
+
+  }
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void LifeTimeTrail(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _VertBuffer_COUNT ){
+    
+
+    Vert b = _BaseBuffer[safeID(pID %_VertsPerMesh , _BaseBuffer_COUNT )];
+    Particle p = _SkeletonBuffer[safeID( pID / _VertsPerMesh , _SkeletonBuffer_COUNT )];
+
+
+    float3 xDir = p.nor;
+    float3 yDir = p.tan;
+    float3 zDir = cross( xDir , yDir );
+
+    float3 c1 = normalize(float3( xDir.x , yDir.x , zDir.x ));
+    float3 c2 = normalize(float3( xDir.y , yDir.y , zDir.y ));
+    float3 c3 = normalize(float3( xDir.z , yDir.z , zDir.z ));
+
+    float3x3 rotMat = float3x3(c1,c2,c3);
+
+    float3 fPos; float3 fNor; float3 fTan;
+    if( _Direction == 0 ){
+      fPos = b.pos; fNor = b.nor; fTan = b.tan;
+    }else if( _Direction == 1 ){
+      fPos = b.pos.yxz; fNor = b.nor.yxz; fTan = b.tan.yxz;
+    }else{
+      fPos = b.pos.zxy; fNor = b.nor.zxy; fTan = b.tan.zxy;
+    }
+
+  float fRadius = min( p.debug.y , (1-p.debug.y)*4)*_Radius * (1.3-p.uv.x);
+
+
+    _VertBuffer[pID].pos      = p.pos + mul( rotMat , fPos) * fRadius;// = v;
+    _VertBuffer[pID].nor      = mul( rotMat , fNor);
+    _VertBuffer[pID].tan      = mul( rotMat , fTan);
+    _VertBuffer[pID].uv       = b.uv;
+
+
+  }
+
+}

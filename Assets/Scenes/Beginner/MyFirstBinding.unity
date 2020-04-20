@@ -353,8 +353,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -394,8 +394,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: 0.055691183, y: 0.94436395, z: -0.23389494, w: 0.22442886}
+  m_LocalPosition: {x: -1.6066933, y: 0.42431736, z: -0.6786232}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1073,6 +1073,11 @@ PrefabInstance:
       propertyPath: data
       value: 
       objectReference: {fileID: 1463586040}
+    - target: {fileID: 1075942554174841979, guid: 0f68e590ac9b9134c972f8d7a124db38,
+        type: 3}
+      propertyPath: material
+      value: 
+      objectReference: {fileID: 2100000, guid: cac4e633b7a108448b5881a14cda084e, type: 2}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0f68e590ac9b9134c972f8d7a124db38, type: 3}
 --- !u!114 &1075942552856836683 stripped

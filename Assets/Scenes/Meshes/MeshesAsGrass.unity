@@ -186,13 +186,33 @@ PrefabInstance:
     - target: {fileID: 2275940364099919148, guid: 9c46066b839b363428f4734c24fba02b,
         type: 3}
       propertyPath: active
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2275940364099919148, guid: 9c46066b839b363428f4734c24fba02b,
         type: 3}
       propertyPath: data
       value: 
       objectReference: {fileID: 1463586040}
+    - target: {fileID: 2275940364099919148, guid: 9c46066b839b363428f4734c24fba02b,
+        type: 3}
+      propertyPath: gestating
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2275940364099919148, guid: 9c46066b839b363428f4734c24fba02b,
+        type: 3}
+      propertyPath: gestated
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2275940364099919148, guid: 9c46066b839b363428f4734c24fba02b,
+        type: 3}
+      propertyPath: begunBirth
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2275940364099919148, guid: 9c46066b839b363428f4734c24fba02b,
+        type: 3}
+      propertyPath: birthed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2275940364099919149, guid: 9c46066b839b363428f4734c24fba02b,
         type: 3}
       propertyPath: mesh
@@ -302,11 +322,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -341,11 +361,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -379,11 +399,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -417,11 +437,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -429,26 +449,26 @@ MonoBehaviour:
   dying: 0
   died: 0
   destroyed: 0
-  debug: 0
+  debug: 1
   active: 0
   data: {fileID: 1463586040}
   Cycles: []
-  count: 800
+  count: 4000
   saveName: entity9218285
-  alwaysRemake: 0
+  alwaysRemake: 1
   intBuffer: 0
   structSize: 16
   description: 
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 2100000, guid: bfdba931e444ed946a647d01a3fac6e5, type: 2}
-  loadedFromFile: 1
+  loadedFromFile: 0
   baseForm: {fileID: 1144752430}
   numVertsPerHair: 4
   length: 1
   variance: 0.8
   lineDebugMaterial: {fileID: 2100000, guid: 565847fb6bc5d334c899f49ada3cf153, type: 2}
-  numHairs: 200
+  numHairs: 1000
   countMultiplier: 1
 --- !u!114 &605185084
 MonoBehaviour:
@@ -464,11 +484,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -507,7 +527,7 @@ MonoBehaviour:
   - 0
   - 0
   - 0
-  numFrames: 24338
+  numFrames: 7749
 --- !u!4 &605185085
 Transform:
   m_ObjectHideFlags: 0
@@ -557,11 +577,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -595,11 +615,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -615,7 +635,7 @@ MonoBehaviour:
   - {fileID: 623148652}
   verts: {fileID: 623148653}
   triangles: {fileID: 623148652}
-  material: {fileID: 2100000, guid: 25f9c6c781031e34a8d06f2fed91a57d, type: 2}
+  material: {fileID: 2100000, guid: af213a618d0a07847bdcd00ad8b6dc74, type: 2}
   debugMaterial: {fileID: 0}
 --- !u!114 &623148652
 MonoBehaviour:
@@ -631,11 +651,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -647,8 +667,8 @@ MonoBehaviour:
   active: 0
   data: {fileID: 1463586040}
   Cycles: []
-  count: 144000
-  saveName: entity5505527
+  count: 720000
+  saveName: entity2736479
   alwaysRemake: 0
   intBuffer: 1
   structSize: 1
@@ -659,7 +679,7 @@ MonoBehaviour:
   loadedFromFile: 1
   toIndex: {fileID: 623148653}
   tris: {fileID: 116783947}
-  numMesh: 200
+  numMesh: 1000
   vertsPerMesh: 143
   trisPerMesh: 720
 --- !u!114 &623148653
@@ -676,11 +696,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -692,8 +712,8 @@ MonoBehaviour:
   active: 0
   data: {fileID: 1463586040}
   Cycles: []
-  count: 28600
-  saveName: entity7483094
+  count: 143000
+  saveName: entity8407483
   alwaysRemake: 0
   intBuffer: 0
   structSize: 16
@@ -704,8 +724,9 @@ MonoBehaviour:
   loadedFromFile: 1
   verts: {fileID: 116783948}
   Base: {fileID: 1144752430}
-  numMesh: 200
+  numMesh: 1000
   vertsPerMesh: 143
+  countMultiplier: 1
 --- !u!114 &623148654
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -720,11 +741,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -808,7 +829,7 @@ Light:
   serializedVersion: 10
   m_Type: 1
   m_Shape: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 0, b: 0.9806781, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -907,8 +928,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -948,8 +969,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.2824332, y: 0.37064978, z: -0.119868964, w: -0.8766309}
+  m_LocalPosition: {x: 3.4887743, y: 2.905963, z: -3.4542618}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -988,11 +1009,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -1026,11 +1047,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -1058,13 +1079,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1144752426}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.09443425, y: 0.09443425, z: 0.09443425}
+  m_LocalScale: {x: 0.40246317, y: 0.40246317, z: 0.40246317}
   m_Children:
   - {fileID: 605185085}
-  m_Father: {fileID: 1873683127}
-  m_RootOrder: 0
+  m_Father: {fileID: 0}
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1144752430
 MonoBehaviour:
@@ -1080,11 +1101,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -1096,8 +1117,8 @@ MonoBehaviour:
   active: 0
   data: {fileID: 1463586040}
   Cycles: []
-  count: 200
-  saveName: entity6512494
+  count: 1000
+  saveName: entity909040
   alwaysRemake: 0
   intBuffer: 0
   structSize: 24
@@ -1109,6 +1130,98 @@ MonoBehaviour:
   mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
   noiseType: 
   noiseSize: 0
+--- !u!1 &1385615882
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1385615884}
+  - component: {fileID: 1385615883}
+  m_Layer: 0
+  m_Name: Directional Light (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!108 &1385615883
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1385615882}
+  m_Enabled: 1
+  serializedVersion: 10
+  m_Type: 1
+  m_Shape: 0
+  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Intensity: 1
+  m_Range: 10
+  m_SpotAngle: 30
+  m_InnerSpotAngle: 21.80208
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 2
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+    m_CullingMatrixOverride:
+      e00: 1
+      e01: 0
+      e02: 0
+      e03: 0
+      e10: 0
+      e11: 1
+      e12: 0
+      e13: 0
+      e20: 0
+      e21: 0
+      e22: 1
+      e23: 0
+      e30: 0
+      e31: 0
+      e32: 0
+      e33: 1
+    m_UseCullingMatrixOverride: 0
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingLayerMask: 1
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_UseBoundingSphereOverride: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+--- !u!4 &1385615884
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1385615882}
+  m_LocalRotation: {x: 0.13636327, y: -0.38098142, z: 0.4000141, w: 0.8223424}
+  m_LocalPosition: {x: 3.43, y: 2.293, z: -0.875}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 31.943, y: -37.578003, z: 40.757004}
 --- !u!1001 &1463586039
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1134,22 +1247,22 @@ PrefabInstance:
     - target: {fileID: 3138144008679726282, guid: a1537e2710cdb104e93322f9aca5562b,
         type: 3}
       propertyPath: Cycles.Array.size
-      value: 3
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 3138144008679726282, guid: a1537e2710cdb104e93322f9aca5562b,
         type: 3}
       propertyPath: begunLive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3138144008679726282, guid: a1537e2710cdb104e93322f9aca5562b,
         type: 3}
       propertyPath: living
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3138144008679726282, guid: a1537e2710cdb104e93322f9aca5562b,
         type: 3}
       propertyPath: started
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3138144008679726282, guid: a1537e2710cdb104e93322f9aca5562b,
         type: 3}
@@ -1271,6 +1384,11 @@ PrefabInstance:
       propertyPath: forms.Array.data[7]
       value: 
       objectReference: {fileID: 623148652}
+    - target: {fileID: 3138144008679726282, guid: a1537e2710cdb104e93322f9aca5562b,
+        type: 3}
+      propertyPath: Cycles.Array.data[3]
+      value: 
+      objectReference: {fileID: 1144752428}
     - target: {fileID: 3138144008679726283, guid: a1537e2710cdb104e93322f9aca5562b,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -1394,6 +1512,7 @@ GameObject:
   - component: {fileID: 1873683129}
   - component: {fileID: 1873683128}
   - component: {fileID: 1873683125}
+  - component: {fileID: 1873683130}
   m_Layer: 0
   m_Name: Hair On Static Plane
   m_TagString: Untagged
@@ -1429,11 +1548,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -1473,9 +1592,8 @@ Transform:
   m_GameObject: {fileID: 1873683123}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.40246317, y: 0.40246317, z: 0.40246317}
-  m_Children:
-  - {fileID: 1144752429}
+  m_LocalScale: {x: 0.72781444, y: 0.72781444, z: 0.72781444}
+  m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1493,11 +1611,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -1535,11 +1653,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   created: 1
   begunGestation: 1
-  gestating: 0
-  gestated: 1
-  begunBirth: 1
+  gestating: 1
+  gestated: 0
+  begunBirth: 0
   birthing: 0
-  birthed: 1
+  birthed: 0
   begunLive: 1
   living: 1
   lived: 0
@@ -1548,7 +1666,7 @@ MonoBehaviour:
   died: 0
   destroyed: 0
   debug: 0
-  active: 1
+  active: 0
   data: {fileID: 1463586040}
   Cycles:
   - {fileID: 1873683128}
@@ -1558,3 +1676,42 @@ MonoBehaviour:
   triangles: {fileID: 1873683125}
   material: {fileID: 2100000, guid: 25f9c6c781031e34a8d06f2fed91a57d, type: 2}
   debugMaterial: {fileID: 0}
+--- !u!23 &1873683130
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873683123}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: -3033667219593020291, guid: e021966c59420f045ba0ebe2f14f87c0, type: 3}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
