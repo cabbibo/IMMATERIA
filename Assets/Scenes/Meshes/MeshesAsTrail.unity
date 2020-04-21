@@ -910,7 +910,7 @@ MonoBehaviour:
   Cycles: []
   toBind: {fileID: 1781335240}
   nameInBuffer: _Direction
-  boundInt: 1
+  boundInt: 2
 --- !u!114 &3138144007890964514
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -944,7 +944,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 3138144007890964541}
-  time: 450.3378
+  time: 20.523655
 --- !u!1 &3138144007890964515
 GameObject:
   m_ObjectHideFlags: 0

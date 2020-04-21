@@ -1352,7 +1352,7 @@ MonoBehaviour:
   active: 0
   data: {fileID: 3138144007890964514}
   Cycles: []
-  count: 17598
+  count: 17599
   saveName: entity3316519
   alwaysRemake: 1
   intBuffer: 0
@@ -1433,7 +1433,7 @@ Transform:
   m_GameObject: {fileID: 2275940363965090375}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.003734741, y: 0.003734741, z: 0.003734741}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 5
@@ -1471,7 +1471,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 3138144007890964541}
-  time: 640.50116
+  time: 89.08276
 --- !u!1 &3138144007890964515
 GameObject:
   m_ObjectHideFlags: 0
@@ -1581,7 +1581,7 @@ PrefabInstance:
     - target: {fileID: 6766549778085761696, guid: 35820b27fa004b049bad792bc3262d55,
         type: 3}
       propertyPath: count
-      value: 5319
+      value: 105594
       objectReference: {fileID: 0}
     - target: {fileID: 6766549778085761696, guid: 35820b27fa004b049bad792bc3262d55,
         type: 3}
@@ -1591,12 +1591,17 @@ PrefabInstance:
     - target: {fileID: 6766549778085761696, guid: 35820b27fa004b049bad792bc3262d55,
         type: 3}
       propertyPath: numMesh
-      value: 3
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 6766549778085761696, guid: 35820b27fa004b049bad792bc3262d55,
         type: 3}
       propertyPath: loadedFromFile
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6766549778085761696, guid: 35820b27fa004b049bad792bc3262d55,
+        type: 3}
+      propertyPath: vertsPerMesh
+      value: 17599
       objectReference: {fileID: 0}
     - target: {fileID: 6766549778085761697, guid: 35820b27fa004b049bad792bc3262d55,
         type: 3}

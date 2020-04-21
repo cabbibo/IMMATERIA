@@ -177,7 +177,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 2100000, guid: 688fd0876b7255a4fbcd9a55cccb13dd, type: 2}
-  loadedFromFile: 0
+  loadedFromFile: 1
   transformPositions: 0
 --- !u!4 &754648592
 Transform:
@@ -228,8 +228,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -269,8 +269,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.23524967, y: 0.050868, z: -0.012381245, w: -0.970524}
+  m_LocalPosition: {x: 0.19446373, y: 0.87963104, z: -1.6594238}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -328,7 +328,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 0}
-  time: 185.08261
+  time: 12.381441
 --- !u!114 &1046986071
 MonoBehaviour:
   m_ObjectHideFlags: 0

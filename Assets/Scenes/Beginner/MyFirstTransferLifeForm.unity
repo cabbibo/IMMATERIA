@@ -356,8 +356,8 @@ Camera:
   m_GameObject: {fileID: 963194225}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -397,8 +397,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.25534412, y: -0.27115566, z: 0.07476988, w: -0.92503166}
+  m_LocalPosition: {x: 0.9246979, y: 1.8916092, z: -2.916153}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -791,6 +791,31 @@ PrefabInstance:
       propertyPath: skeleton
       value: 
       objectReference: {fileID: 574663768}
+    - target: {fileID: 7953503874491538835, guid: 7b3da9709ef5bff4ca1636a79186c879,
+        type: 3}
+      propertyPath: radius
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953503874491538835, guid: 7b3da9709ef5bff4ca1636a79186c879,
+        type: 3}
+      propertyPath: transformArray.Array.data[0]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953503874491538835, guid: 7b3da9709ef5bff4ca1636a79186c879,
+        type: 3}
+      propertyPath: transformArray.Array.data[5]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953503874491538835, guid: 7b3da9709ef5bff4ca1636a79186c879,
+        type: 3}
+      propertyPath: transformArray.Array.data[10]
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7953503874491538835, guid: 7b3da9709ef5bff4ca1636a79186c879,
+        type: 3}
+      propertyPath: transformArray.Array.data[15]
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7b3da9709ef5bff4ca1636a79186c879, type: 3}
 --- !u!114 &6295225590012019082 stripped

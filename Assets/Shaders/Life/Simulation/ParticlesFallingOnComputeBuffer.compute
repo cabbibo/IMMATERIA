@@ -32,6 +32,10 @@ float4x4 _SDFInverseTransform;
 Texture3D<float4> _SDFTexture;
 SamplerState _LinearClamp;
 
+void DoInit(inout Vert v , int pID){
+
+}
+
 
 float3 DoRemitPosition(int p){
    return mul( _Transform, float4( hash(float(p)*20)-.5,0 , hash(float(p)*231)-.5,1)).xyz;

@@ -42,7 +42,7 @@ float3 GetPos( int id){
 float map( float3 pos ){
 
   float res = 10000;
-  res = length( pos ) - .3;
+  res = length( pos ) - .5;
 return res;
 }
 

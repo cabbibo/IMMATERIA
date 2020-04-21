@@ -1,0 +1,57 @@
+﻿#pragma kernel Smooth
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 og;
+  float2 uv;
+  float  numConnections;
+  float startConnection;
+};
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<int> _ConnectionBuffer;
+
+int _VertBuffer_COUNT;
+int _ConnectionBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Smooth (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _VertBuffer_COUNT ){
+    
+    int sID = safeID( pID, _VertBuffer_COUNT );
+    Vert v = _VertBuffer[sID];
+
+
+    float3 normal = 0;
+    for( int i = 0; i < (int)v.numConnections; i++ ){
+
+        float3 p1 = v.pos;
+
+        float3 p2 = _VertBuffer[_ConnectionBuffer[v.startConnection*2+i*2+0]].pos;
+        float3 p3 = _VertBuffer[_ConnectionBuffer[v.startConnection*2+i*2+1]].pos;
+        float3 nor = normalize(cross( p1 - p2 , p1 - p3 ));
+        normal += nor;
+    }
+
+    normal /= (int)v.numConnections;
+    v.nor = normal;
+
+
+    _VertBuffer[sID] = v;
+
+
+  }
+
+}
+

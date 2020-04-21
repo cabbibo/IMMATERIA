@@ -4,5 +4,92 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Beginner/MyFirstBinding.unity
+    guid: d1879042922f96549807e08d10f7b285
+  - enabled: 1
+    path: Assets/Scenes/Beginner/MyFirstBody.unity
+    guid: 2b615412b6a465448a39e8a9eeed8e88
+  - enabled: 1
+    path: Assets/Scenes/Beginner/MyFirstGooeyMesh.unity
+    guid: 1d51b1e3b64ab71468eb28a60093c55d
+  - enabled: 1
+    path: Assets/Scenes/Beginner/MyFirstReality.unity
+    guid: 6b4dffe1efcc57a45b688186a32f4099
+  - enabled: 1
+    path: Assets/Scenes/Beginner/MyFirstSimulation.unity
+    guid: d158ecca867e9da468535a164ab215c1
+  - enabled: 1
+    path: Assets/Scenes/Beginner/MyFirstTransferLifeForm.unity
+    guid: 9531cf192e11b67458ee8b9047b2980c
+  - enabled: 1
+    path: Assets/Scenes/Hair/HairOnDynamicMesh.unity
+    guid: b1bb0b81d6e77204396ad4c74cbdab85
+  - enabled: 1
+    path: Assets/Scenes/Hair/HairOnScene.unity
+    guid: 92d2ec1c61af7404b8e58531448fd57f
+  - enabled: 1
+    path: Assets/Scenes/Hair/HairOnStaticMesh.unity
+    guid: fa7b06ec60cbdd54b8625a935d07749f
+  - enabled: 1
+    path: Assets/Scenes/Hair/RopesOnTransformBuffer.unity
+    guid: 1c409b06b906a824199113d7c0dc7140
+  - enabled: 1
+    path: Assets/Scenes/Intermediate/CustomLifeForm.unity
+    guid: e63190fa2b4809146a7f2e4af775c45a
+  - enabled: 1
+    path: Assets/Scenes/Intermediate/FormsOnForms.unity
+    guid: e3107eb16b78df745b3c2b1d2dc0ed7b
+  - enabled: 1
+    path: Assets/Scenes/Intermediate/FormsOnFormsOnForms.unity
+    guid: 9368431a8daa25c49957e8d6e9b3330e
+  - enabled: 1
+    path: Assets/Scenes/Meshes/HairOnSkinnedMesh.unity
+    guid: aba71a982ab0a59469963c5c8e331b0c
+  - enabled: 1
+    path: Assets/Scenes/Meshes/MeshesAsGrass.unity
+    guid: c5d14debb2e98c845b9ec558d27f25b1
+  - enabled: 1
+    path: Assets/Scenes/Meshes/MeshesAsParticles.unity
+    guid: 0cd9c31e63675a649a95542fea9207f9
+  - enabled: 1
+    path: Assets/Scenes/Meshes/MeshesAsTrail.unity
+    guid: 9cd5a69d67dffe24183c6848ab5bdce9
+  - enabled: 1
+    path: Assets/Scenes/Meshes/MeshesOnRope.unity
+    guid: 993d868cf03ddfd4b989cca4b3af1f51
+  - enabled: 1
+    path: Assets/Scenes/Meshes/MeshesOnTransforms.unity
+    guid: 37c1b577386b5ad4bb18a8fc0e541a51
+  - enabled: 1
+    path: Assets/Scenes/Meshes/SkinnedMeshRenderer.unity
+    guid: ca0e7bf38eb0f824888a0a435263b4cc
+  - enabled: 1
+    path: Assets/Scenes/Particles/DisformedByTransformBuffer.unity
+    guid: ad35ab99b93393e409dcff2b1da0189b
+  - enabled: 1
+    path: Assets/Scenes/Particles/ParticlesEmitFromMEsh.unity
+    guid: 58b38b308e5407341bd3d9505b375d4a
+  - enabled: 1
+    path: Assets/Scenes/Particles/ParticlesWithTrails.unity
+    guid: 3620e744011f2564aa8e99535500b111
+  - enabled: 1
+    path: Assets/Scenes/SDF/BoneSDF.unity
+    guid: d78ae1768f909f342943cb43303b5584
+  - enabled: 1
+    path: Assets/Scenes/SDF/MeshToSDF.unity
+    guid: b93af7ff0c3c4d7459be8cf13c407948
+  - enabled: 1
+    path: Assets/Scenes/SDF/ParticlesOnSDF.unity
+    guid: b53fa2e1e801c914ebfb522f5dd3e665
+  - enabled: 1
+    path: Assets/Scenes/SDF/SDFBasic.unity
+    guid: 794e56a7ab681224a8b18dc27c365434
+  - enabled: 1
+    path: Assets/Scenes/SDF/SDFToMesh.unity
+    guid: 165adf6fa4de3aa4dacb96a28fbec1a4
+  - enabled: 1
+    path: Assets/Scenes/MaterialExplorer.unity
+    guid: 80d7b39a1609c1b479cc187c8d9d2edc
   m_configObjects: {}

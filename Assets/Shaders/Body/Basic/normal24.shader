@@ -1,4 +1,4 @@
-﻿Shader "Base/Normal/24"
+﻿Shader "IMMAT/Basic/Normal24"
 {
     
     SubShader

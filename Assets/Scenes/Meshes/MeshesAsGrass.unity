@@ -527,7 +527,7 @@ MonoBehaviour:
   - 0
   - 0
   - 0
-  numFrames: 7749
+  numFrames: 1422
 --- !u!4 &605185085
 Transform:
   m_ObjectHideFlags: 0
@@ -668,7 +668,7 @@ MonoBehaviour:
   data: {fileID: 1463586040}
   Cycles: []
   count: 720000
-  saveName: entity2736479
+  saveName: entity3899627
   alwaysRemake: 0
   intBuffer: 1
   structSize: 1
@@ -676,7 +676,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 0}
-  loadedFromFile: 1
+  loadedFromFile: 0
   toIndex: {fileID: 623148653}
   tris: {fileID: 116783947}
   numMesh: 1000
@@ -713,7 +713,7 @@ MonoBehaviour:
   data: {fileID: 1463586040}
   Cycles: []
   count: 143000
-  saveName: entity8407483
+  saveName: entity7863330
   alwaysRemake: 0
   intBuffer: 0
   structSize: 16
@@ -721,7 +721,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 2100000, guid: 87da72007608115469a21bc4a83757c3, type: 2}
-  loadedFromFile: 1
+  loadedFromFile: 0
   verts: {fileID: 116783948}
   Base: {fileID: 1144752430}
   numMesh: 1000
@@ -969,8 +969,8 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
-  m_LocalRotation: {x: -0.2824332, y: 0.37064978, z: -0.119868964, w: -0.8766309}
-  m_LocalPosition: {x: 3.4887743, y: 2.905963, z: -3.4542618}
+  m_LocalRotation: {x: -0.14369656, y: 0.7271476, z: -0.16008098, w: -0.65190625}
+  m_LocalPosition: {x: 2.9287415, y: 0.85235596, z: -0.24847984}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -1118,7 +1118,7 @@ MonoBehaviour:
   data: {fileID: 1463586040}
   Cycles: []
   count: 1000
-  saveName: entity909040
+  saveName: entity4876827
   alwaysRemake: 0
   intBuffer: 0
   structSize: 24

@@ -77,8 +77,7 @@
                 //fixed shadow = LIGHT_ATTENUATION(v) ;
                 float3 col = _LightColor0.xyz;
 
-                //col *= shadow;
-                col = amb;
+                col *= shadow;
                 return float4(col,1);
             }
 
@@ -154,7 +153,7 @@ Blend One One
                 //fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos) * .5 + .5;
                 fixed shadow = UNITY_SHADOW_ATTENUATION(v,v.worldPos);
                 float3 col = _LightColor0.xyz;//_Color.xyz;
-
+                col = _LightColor0;
                 col *= shadow;
                 return float4(col,1);
             }

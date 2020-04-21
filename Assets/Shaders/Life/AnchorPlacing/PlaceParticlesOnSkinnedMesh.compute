@@ -1,0 +1,133 @@
+﻿#pragma kernel Transfer
+
+#pragma kernel Force
+
+
+
+  struct Vert{
+
+    float3 pos;
+    float3 vel;
+    float3 nor;
+    float3 tang;
+    float2 uv;
+  
+    float used;
+  
+   
+    float3 targetPos;
+    float3 bindPos;
+    float3 bindNor;
+    float3 bindTan;
+
+    float4 boneWeights;
+    float4 boneIDs;
+
+    float debug;
+
+  };
+
+
+
+
+
+struct Particle{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tan;
+  float2 uv;
+  float used;
+  float3 triIDs;
+  float3 triWeights;
+  float3 debug;
+};
+
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Particle> _ParticleBuffer;
+
+int _VertBuffer_COUNT;
+int _ParticleBuffer_COUNT;
+
+
+float _Scale;
+int _VertsPerMesh;
+float _Time;
+
+#include "../../Chunks/safeID.cginc"
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _ParticleBuffer_COUNT ){
+    
+    int sID = safeID( pID, _ParticleBuffer_COUNT );
+    Particle p = _ParticleBuffer[sID];
+
+    Vert v1 = _VertBuffer[safeID((int)p.triIDs.x, _VertBuffer_COUNT )];
+    Vert v2 = _VertBuffer[safeID((int)p.triIDs.y, _VertBuffer_COUNT )];
+    Vert v3 = _VertBuffer[safeID((int)p.triIDs.z, _VertBuffer_COUNT )];
+
+    p.pos = v1.pos * p.triWeights.x +  v2.pos * p.triWeights.y + v3.pos * p.triWeights.z;
+    p.nor = v1.nor * p.triWeights.x +  v2.nor * p.triWeights.y + v3.nor * p.triWeights.z;
+    p.uv  = v1.uv  * p.triWeights.x +  v2.uv  * p.triWeights.y + v3.uv  * p.triWeights.z;
+    p.vel = v1.vel  * p.triWeights.x +  v2.vel  * p.triWeights.y + v3.vel  * p.triWeights.z;
+    //p.debug.xy  = v1.debug  * p.triWeights.x +  v2.debug  * p.triWeights.y + v3.debug  * p.triWeights.z;
+
+    _ParticleBuffer[sID] = p;
+
+
+  }
+
+}
+
+
+float _Force;
+float _OutAmount;
+float _Dampening;
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Force(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  if( pID < _ParticleBuffer_COUNT ){
+    
+    int sID = safeID( pID, _ParticleBuffer_COUNT );
+    Particle p = _ParticleBuffer[sID];
+
+    Vert v1 = _VertBuffer[safeID((int)p.triIDs.x, _VertBuffer_COUNT )];
+    Vert v2 = _VertBuffer[safeID((int)p.triIDs.y, _VertBuffer_COUNT )];
+    Vert v3 = _VertBuffer[safeID((int)p.triIDs.z, _VertBuffer_COUNT )];
+
+
+    float3 targetPos = v1.pos * p.triWeights.x +  v2.pos * p.triWeights.y + v3.pos * p.triWeights.z;
+
+    float3 targetNor =v1.nor * p.triWeights.x +  v2.nor * p.triWeights.y + v3.nor * p.triWeights.z;
+
+
+  float3 force = 0;
+
+  force += ((targetPos+ targetNor * _OutAmount)-p.pos) * _Force ;
+
+    p.vel += force * .01;
+    p.pos += p.vel;
+    p.vel *= _Dampening;
+
+
+    p.nor = targetNor;
+    p.uv  = v1.uv  * p.triWeights.x +  v2.uv  * p.triWeights.y + v3.uv  * p.triWeights.z;
+
+    _ParticleBuffer[sID] = p;
+
+
+  }
+
+}
