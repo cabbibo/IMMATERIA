@@ -1,4 +1,4 @@
-﻿Shader "Debug/ConnectionDebug" {
+﻿Shader "IMMAT/Debug/ConnectionDebug" {
     Properties {
        _ColorMap ("ColorMap", 2D) = "white" {}
        _TextureMap ("TextureMap", 2D) = "white" {}

@@ -6,21 +6,27 @@ namespace IMMATERIA {
 public class ConstraintLife : Life{
 
 
-  public int numberOfPasses = 1;
-  public override void GetNumGroups(){
-    numGroups = Mathf.Max( (primaryForm.count/2+((int)numThreads-1))/(int)numThreads,1);
+  public int numPasses = 2;
+  public int numIterations = 1;
+  public override void GetNumGroups(){   
+    
+    float totalCount = (float)primaryForm.count * countMultiplier;
+    if( totalCount != Mathf.Floor( totalCount )){ DebugThis("your count multiplier is not allowing proper total count");}
+    numGroups = ((int)totalCount+((int)numThreads-1))/(int)numThreads;
+   // numGroups = Mathf.Max( (primaryForm.count/2+((int)numThreads-1))/(int)numThreads,1);
   }
 
 
 
   public override void DoDispatch(){
 
-    for( int i = 0; i < numberOfPasses; i++ ){
-      shader.SetFloat("_PassMultiplier", 1 - (float)i/(float)numberOfPasses);
-      shader.SetInt("_Pass", 0);
+    for( int i = 0; i < numIterations; i++ ){
+      
+      shader.SetFloat("_PassMultiplier", 1 - (float)i/(float)numPasses);
+      for( int j= 0; j < numPasses; j++ ){
+      shader.SetInt("_Pass", j);
       shader.Dispatch( kernel,numGroups ,1,1);
-      shader.SetInt("_Pass", 1);
-      shader.Dispatch( kernel,numGroups ,1,1);
+      }
     }
 
 

@@ -1,4 +1,4 @@
-﻿Shader "Debug/IndexLine16" {
+﻿Shader "IMMAT/Debug/IndexLine16" {
 	Properties {
   	_Color ("Color", Color) = (1,1,1,1)
 	}

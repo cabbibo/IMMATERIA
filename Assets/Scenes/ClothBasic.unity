@@ -726,7 +726,7 @@ MonoBehaviour:
   captureVid: 1
   capturing: 0
   speed: 3
-  currentFrame: 5495
+  currentFrame: 5633
   framesSaved: 1083
 --- !u!1001 &3138144008916505626
 PrefabInstance:

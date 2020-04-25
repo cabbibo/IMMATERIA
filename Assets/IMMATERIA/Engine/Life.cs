@@ -18,7 +18,7 @@ public class Life : Cycle {
   
   public ComputeShader shader;
   public string kernelName;
-  public int countMultiplier = 1;
+  public float countMultiplier = 1;
 
   [HideInInspector] public int kernel;
   [HideInInspector] public float executionTime;
@@ -142,7 +142,7 @@ public class Life : Cycle {
         }
         catch
         {
-            DebugThis( kernelName + " : Couldn't be found");
+            DebugThis("kernel: "+ kernelName + " : Couldn't be found");
                #if UNITY_EDITOR
                 EditorGUIUtility.PingObject(this.gameObject);
                 #endif
@@ -157,7 +157,10 @@ public class Life : Cycle {
   public virtual void GetNumGroups(){
 
     if( primaryForm == null ){ DebugThis( "I have no primary form"); }
-    numGroups = (primaryForm.count*countMultiplier+((int)numThreads-1))/(int)numThreads;
+
+    float totalCount = (float)primaryForm.count * countMultiplier;
+    if( totalCount != Mathf.Floor( totalCount )){ DebugThis("your count multiplier is not allowing proper total count");}
+    numGroups = ((int)totalCount+((int)numThreads-1))/(int)numThreads;
   }
  
   public void BindForm( string name , Form form ){

@@ -7,9 +7,9 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Point 16 Debug
-  m_Shader: {fileID: 4800000, guid: e9e49404f86e1034d868422565781b1d, type: 3}
-  m_ShaderKeywords: Enable16Struct
+  m_Name: ClothConnectionsDebug
+  m_Shader: {fileID: 4800000, guid: db24aed39f1f93d4f95ba0b0420d0159, type: 3}
+  m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -71,13 +71,8 @@ Material:
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
-    - _Struct12: 0
-    - _Struct16: 1
-    - _Struct24: 0
-    - _Struct36: 0
-    - _Struct9: 0
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
-    - _Color: {r: 1, g: 0.7238838, b: 0, a: 1}
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}

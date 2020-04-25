@@ -15,6 +15,10 @@ public class Bones: Form {
   [HideInInspector] public float[] values;
 
 
+public override void Create(){
+  DebugThis("two time");
+}
+
   struct Bone{
     public Matrix4x4 transform;
     public Matrix4x4 bindPose;
@@ -33,6 +37,7 @@ public class Bones: Form {
     count = bones.Length;
 
     values = new float[count * structSize ];  
+
   }
 
 public override void WhileLiving( float v ){

@@ -1,5 +1,5 @@
 ﻿
-Shader "Debug/Particles16" {
+Shader "IMMAT/Debug/Particles16" {
     Properties {
 
     _Color ("Color", Color) = (1,1,1,1)

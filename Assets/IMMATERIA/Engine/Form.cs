@@ -35,11 +35,10 @@ public class Form : Cycle {
 
   public override void _Create(){
     if( mpb == null ){ mpb = new MaterialPropertyBlock(); }
-    DoCreate();
     SetStructSize();
     SetCount();
     SetBufferType();
-    Create();
+    DoCreate();
   }
 
   public override void _OnGestate(){ 

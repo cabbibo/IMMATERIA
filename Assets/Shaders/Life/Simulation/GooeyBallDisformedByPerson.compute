@@ -1,0 +1,99 @@
+﻿#pragma kernel Transfer
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float2 debug;
+};
+
+struct Bone{
+    float3 start;
+    float3 end;
+    float size;
+    float debug;
+};
+
+float4x4 _Transform;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Vert> _SkeletonBuffer;
+RWStructuredBuffer<Bone> _BoneBuffer;
+
+int _VertBuffer_COUNT;
+int _SkeletonBuffer_COUNT;
+int _BoneBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/sdfFunctions.cginc"
+
+
+
+float map( float3 pos ){
+
+    float d = 1000;
+    for( int i = 0; i < _BoneBuffer_COUNT; i++ ){
+        Bone b = _BoneBuffer[i];
+        d = min( d , sdCapsule(pos , b.start, b.end, b.size));
+    }
+    return d;
+}
+
+float3 GetNor( float3 pos ){
+  float3 eps = float3(0.0001,0,0);
+  float3 nor = float3( map( pos-eps.xyy) - map( pos+eps.xyy)
+                     , map( pos-eps.yxy) - map( pos+eps.yxy)
+                     , map( pos-eps.yyx) - map( pos+eps.yyx));
+
+  return normalize(nor);
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Transfer (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  int sID = safeID(pID, _VertBuffer_COUNT );
+
+  if( pID < _VertBuffer_COUNT ){
+
+    Vert b = _SkeletonBuffer[safeID( pID , _SkeletonBuffer_COUNT )];
+
+
+    float3 anchorPosition =  mul( _Transform , float4( b.pos , 1)).xyz;
+    float3 anchorNormal = normalize(mul( _Transform , float4( b.nor , 0).xyz));
+
+    Vert v = _VertBuffer[ sID ];
+
+    float3 force = 0;
+
+    force += (anchorPosition - v.pos) * 10;
+
+    float d = map( v.pos );
+    float3 n = GetNor( v.pos );
+    if( d < .01 ){
+        force += (d-.01) * n * 100;
+    }
+
+
+    v.vel += force * .001;
+    v.pos += v.vel;
+    v.vel *= .95;
+
+    v.nor       = anchorNormal;
+    v.tangent   = normalize(mul( _Transform , float4( b.tangent , 0).xyz));;
+    v.uv        = b.uv;
+
+    _VertBuffer[sID] = v;
+
+  }else{
+
+
+  }
+
+}
