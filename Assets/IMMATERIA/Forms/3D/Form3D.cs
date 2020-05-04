@@ -138,7 +138,7 @@ public override void WhileDebug(){
     Color[] bmp = GenerateBitmap(GetData());
     _texture = new Texture3D((int)dimensions.x, (int)dimensions.y, (int)dimensions.z, TextureFormat.RGBAHalf, true);
 
-    _texture.name = "Distance Field Texture";
+    _texture.name = "Distance Field Texture: "+ this.saveName;
     _texture.filterMode = FilterMode.Trilinear;
     _texture.wrapMode = TextureWrapMode.Clamp;
     _texture.SetPixels(bmp);

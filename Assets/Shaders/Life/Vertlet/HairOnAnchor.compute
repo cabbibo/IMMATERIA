@@ -124,7 +124,8 @@ void Collision (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uin
 
     float3 force = float3(0,.4,0);
 
-    force += bN ;
+    force += bN * .2;
+    
     force += curlNoise( vert.pos *1 + float3(0,_Time*.1,0) ) *.4;
 
     // Inertia: objects in motion stay in motion.

@@ -93,6 +93,7 @@ Vert v = _VertBuffer[_TriBuffer[vert.id]];
 
         float3 mainCol = tex2D (_MainTex, IN.texcoord1.xy).rgb;
         float3 nor = UnpackNormal (tex2D (_BumpMap, IN.texcoord2.xy));
+        
           //half rim = 1.0 - saturate(dot (normalize(v.vertex._WorldSpaceCameraPosition), o.Normal));
           //o.Emission =UnpackNormal (tleex2D (_BumpMap, IN.texcoord1.xy * float2( 1 , 1))) * .5 + .5;// _RimColor.rgb * pow (rim, _RimPower);
           o.Albedo =  _Albedo * mainCol;//(nor * .5 + .5) * mainCol * hsv( length(mainCol) * .3 + _Time.x * 5 + IN.debug,1,1);// 1000*(UnpackNormal (tex2D (_BumpMap, IN.texcoord1.xy * float2( 1 , 1)))-float3(0,0,1));// * .5 + .5; //tex2D (_MainTex, IN.texcoord1.xy).rgb;

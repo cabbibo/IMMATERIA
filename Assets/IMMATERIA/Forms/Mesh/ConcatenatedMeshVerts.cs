@@ -21,6 +21,7 @@ public class ConcatenatedMeshVerts : Particles
 
     Vector3[] verts  = new Vector3[  count ];
     Vector3[] nors   = new Vector3[  count ];
+    Vector3[] tans   = new Vector3[  count ];
     Vector2[] uvs    = new Vector2[  count ];
     int[] meshID     = new int[      count ];
 
@@ -28,11 +29,13 @@ public class ConcatenatedMeshVerts : Particles
     for( int i = 0; i < meshes.Length; i++ ){
       Vector3[] v = meshes[i].GetComponent<MeshFilter>().sharedMesh.vertices;
       Vector3[] n = meshes[i].GetComponent<MeshFilter>().sharedMesh.normals;
+      Vector4[] t = meshes[i].GetComponent<MeshFilter>().sharedMesh.tangents;
       Vector2[] u = meshes[i].GetComponent<MeshFilter>().sharedMesh.uv;
 
       for( int j = 0; j < v.Length; j++ ){
         verts[index] = meshes[i].transform.TransformPoint(v[j]);
         nors[index]  = meshes[i].transform.TransformDirection(n[j]);
+        tans[index]  = meshes[i].transform.TransformDirection(HELP.ToV3(t[j]));
         uvs[index]      = u[j];
         meshID[index]   = i;
         index += 1;
@@ -59,9 +62,9 @@ public class ConcatenatedMeshVerts : Particles
       values[ index ++ ] = nors[i].z;
 
 
-      values[ index ++ ] = 0;
-      values[ index ++ ] = 0;
-      values[ index ++ ] = 0;
+      values[ index ++ ] = tans[i].x;
+      values[ index ++ ] = tans[i].y;
+      values[ index ++ ] = tans[i].z;
 
 
       values[ index ++ ] = uvs[i].x;

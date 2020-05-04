@@ -22,7 +22,8 @@ public class ConstraintLife : Life{
 
     for( int i = 0; i < numIterations; i++ ){
       
-      shader.SetFloat("_PassMultiplier", 1 - (float)i/(float)numPasses);
+      float value = (float)i/(float)numIterations;
+      shader.SetFloat("_PassMultiplier", 1 - value);
       for( int j= 0; j < numPasses; j++ ){
       shader.SetInt("_Pass", j);
       shader.Dispatch( kernel,numGroups ,1,1);

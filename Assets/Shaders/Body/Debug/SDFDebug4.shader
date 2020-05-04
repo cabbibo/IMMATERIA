@@ -1,4 +1,4 @@
-﻿Shader "Debug/SDFDebug4"
+﻿Shader "IMMAT/Debug/SDFDebug4"
 {
     Properties
     { 

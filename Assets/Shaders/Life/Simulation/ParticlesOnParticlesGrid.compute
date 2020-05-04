@@ -1,0 +1,284 @@
+﻿#pragma kernel Forces
+#pragma kernel Resolve
+#pragma kernel ClearGrid
+#pragma kernel DoGrid
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 force;
+  float3 debug1;
+  float2 uv;
+  float life;
+  float gridID;
+};
+
+
+struct Grid{
+    float4 id;
+};
+
+
+
+float _DT;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+RWStructuredBuffer<Grid> _GridBuffer;
+
+int _VertBuffer_COUNT;
+int _GridBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/hash.cginc"
+
+float3 _DisformerPosition;
+
+
+
+
+
+float3 _Dimensions;
+float3 _Center;
+float3 _Extents;
+uint3 GetPosInGrid( int id){
+    uint xID = id % int(_Dimensions.x);
+    uint yID = (id / (int(_Dimensions.x))) % int(_Dimensions.y);
+    uint zID = id / (int(_Dimensions.x) * int(_Dimensions.y));
+   return uint3(xID,yID,zID);
+}
+
+
+uint GetGridID( uint3 id){
+   return id.x + id.y * int(_Dimensions.x) + id.z *  (int(_Dimensions.x) * int(_Dimensions.y));
+}
+
+
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Forces(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  
+
+    // Randomly place in cube on start;
+    if( length( vert.pos )== 0 ){
+        vert.pos.x = hash(float(pID) * 20) * 2 -1;
+        vert.pos.y = hash(float(pID) * 30) * 2 -1;
+        vert.pos.z = hash(float(pID) * 40) * 2 -1;
+    }
+
+  float3 force = 0;
+
+  
+    force += float3(0,-3,0);
+
+
+
+    // loop through each voxel;
+    for( int x = 0; x < 3; x++ ){
+    for( int y = 0; y < 3; y++ ){
+    for( int z = 0; z < 3; z++ ){
+
+        int gridID = int(vert.gridID);
+        int3 gridPos = GetPosInGrid(gridID);
+
+
+        int3 newGridPos = gridPos;
+
+        newGridPos += x-1;
+        newGridPos += y-1;// * _Dimensions.x;
+        newGridPos += z-1;// * _Dimensions.x*_Dimensions.y;
+
+
+        if( newGridPos.x < 0 
+         || newGridPos.y < 0 
+         || newGridPos.z < 0 
+         || newGridPos.x >= _Dimensions.x 
+         || newGridPos.y >= _Dimensions.y 
+         || newGridPos.z >= _Dimensions.z ){
+             gridID = -1;
+         }else{
+             gridID = GetGridID( newGridPos );
+         }
+
+
+    if( gridID >= 0 ){
+    
+        float4 ids = _GridBuffer[gridID].id;
+
+        // for each voxel loop through each particle
+        for( int j = 0; j < 4; j ++){
+
+            int newID = int(ids.x);
+            if( j== 1){ newID = int(ids.y);}
+            if( j== 2){ newID = int(ids.z);}
+            if( j== 3){ newID = int(ids.w);}
+
+            if( newID >= 0 && newID != pID ){
+            
+                Vert vert2 = _VertBuffer[newID];
+
+                float3 p1 = vert.pos;
+                float3 p2 = vert2.pos;
+                float3 v1 = vert.vel;
+                float3 v2 = vert2.vel;
+
+                float3 dif = p1-p2;
+                float dist = length(dif);
+                float3 normalizedDif = normalize(dif);
+                float3 relativeVel = v1 -v2;
+
+                float diameter = .08;
+            // project our velocity onto the vector between the particles
+                // then subtract from velocity to get our tangential velocity
+                //( tangential to point of contact! )
+                float3 relativeTangentialVel = relativeVel - ( dot(relativeVel,normalizedDif) * normalizedDif);
+
+
+                // Our particles are colliding!
+                if( dist < diameter * 2 ){
+                    float penetration = diameter*2 - dist;
+                    force += normalizedDif * penetration * 1000;
+                    force -= relativeTangentialVel * 100;
+                }
+            }
+        }}
+
+    }}}
+  
+  
+
+
+float wallForce = 100;
+    float oPos = vert.pos;
+    if( abs(vert.pos.x) > 1  ){
+        float penetration = abs(vert.pos.x)-1;
+        force -= penetration * wallForce * float3(1,0,0) * sign(vert.pos.x);
+    }
+
+    if( abs(vert.pos.y) > 1  ){
+        float penetration = abs(vert.pos.y)-1;
+        force -= penetration * wallForce * float3(0,1,0) * sign(vert.pos.y);
+    }
+
+    if( abs(vert.pos.z) > 1  ){
+        float penetration = abs(vert.pos.z)-1;
+        force -= penetration * wallForce * float3(0,0,1) * sign(vert.pos.z);
+    }
+  
+
+    float3 dif = _DisformerPosition - vert.pos;
+    if( length(dif) < .25 ){
+        float penetration = length( dif )-.25;
+        force += normalize(dif) * penetration * 1000;
+    }
+
+
+
+  
+  vert.force = force;
+  
+  _VertBuffer[pID] = vert;
+
+}
+
+
+[numthreads(NR_THREADS,1,1)]
+void Resolve(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  
+    float delta = .01;
+
+
+  float mF = 1;
+  
+  if( length( vert.force ) > mF ){ vert.force = normalize(vert.force) * mF;}
+  vert.vel += vert.force * delta; //* delta *1;
+
+  float mV = 1;
+  if( length( vert.vel ) > mV ){ vert.vel = normalize(vert.vel) * mV;}
+  vert.pos += vert.vel * delta; // * delta;
+
+  vert.vel *= .99;
+
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+
+float GetIDInGrid( float3 pos ){
+
+    pos -= _Center;
+    pos /= _Extents;
+    pos += 1;
+    pos /= 2;
+
+    pos *= _Dimensions;
+
+    int x = pos.x ; int y = pos.y; int z = pos.z;
+
+
+  if( x >= _Dimensions.x || x < 0 || y >= _Dimensions.y  || y < 0 ||z >=_Dimensions.z || z < 0  ){
+    return -1;
+  }else{
+    return x + y *_Dimensions.x + z * _Dimensions.x*_Dimensions.y;
+  }
+}
+
+[numthreads(NR_THREADS,1,1)]
+void ClearGrid(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+    int pID = threadID + u3GroupID.x * NR_THREADS;
+  pID = safeID(pID,_GridBuffer_COUNT);
+  _GridBuffer[pID].id = -1;//float4(1000,4000,1000,0);
+}
+
+[numthreads(NR_THREADS,1,1)]
+void DoGrid(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+
+ vert.gridID = GetIDInGrid(vert.pos);
+ 
+ float4 gridVals = _GridBuffer[int(vert.gridID)].id;
+
+if( gridVals.x == -1 ){
+    gridVals.x = pID;
+}else if( gridVals.y == -1 ){
+ gridVals.y = pID;
+}else if( gridVals.z == -1 ){
+ gridVals.z = pID;
+}else if( gridVals.w == -1 ){
+ gridVals.w = pID;
+}else{
+    // nada
+}
+
+_GridBuffer[int(vert.gridID)].id = gridVals;
+
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+
+
+
+

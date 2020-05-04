@@ -90,6 +90,6 @@ EditorBuildSettings:
     path: Assets/Scenes/SDF/SDFToMesh.unity
     guid: 165adf6fa4de3aa4dacb96a28fbec1a4
   - enabled: 1
-    path: Assets/Scenes/MaterialExplorer.unity
+    path: Assets/Scenes/MaterialExplorer/MaterialExplorer.unity
     guid: 80d7b39a1609c1b479cc187c8d9d2edc
   m_configObjects: {}

@@ -1,0 +1,163 @@
+﻿
+/*
+
+Code refrence for this style of constraint collision:
+https://github.com/TheAllenChou/unity-cj-lib
+
+*/
+
+
+#pragma kernel Force
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 force;
+  float3 debug1;
+  float2 uv;
+  float life;
+  float gridID;
+};
+
+
+RWStructuredBuffer<Vert> _VertBuffer;
+int _VertBuffer_COUNT;
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/hash.cginc"
+
+float3 _SpherePosition;
+float3 _SphereVelocity;
+
+
+struct result{
+  float3 position;
+  float3 velocity;
+};
+
+
+void doCollision( inout float3 pos , inout float3 vel , float penetration, float3 relativeVelocity , float3 contactNormal , float restitution , float friction ){
+
+
+    // Getting the normal part of the contact
+    float d = dot(relativeVelocity, contactNormal);
+
+    // getting the tangential speed ratio
+    float f = -d / length( relativeVelocity ); 
+
+
+    // Getting the normal component of our relative velocity
+    float3 velN = d * contactNormal;
+
+    // Getting the tangential component of our relative velocity
+    float3 velT = relativeVelocity - velN; 
+
+
+    // amount of 'restitution' reduces how much we bounce out!
+    float3 bounce = -(1.0+restitution) * velN;
+    
+    // amoutn of friction reduces how much we bounce to the side
+    float3 side = -friction * f * velT;
+
+    float3 velResolution = bounce + side;
+
+    // first off move it out of the surface
+    pos += penetration * contactNormal;
+
+    // then add to our velocity
+    vel = relativeVelocity + step(.0001, penetration) * velResolution;
+
+}
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Force(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+
+
+float dT = .01;
+
+  float3 newVel = vert.vel;
+  float3 newPos = vert.pos;
+
+
+  // doing the force stuff ( in this case gravity )
+  newVel.y -= .3 * dT;
+
+
+/*
+
+  Doing Collision with sphere
+
+*/
+
+  float3 velRel = newVel - _SphereVelocity;
+
+
+    float3 dif = vert.pos.xyz - _SpherePosition.xyz;
+    float dist = length(dif);
+
+    float vertRadius = .05;
+    float sphereRadius = .5;
+
+    // how deep we go into the sphere
+    float penetration = max(0, vertRadius + sphereRadius - dist );
+
+    // normalized dif ( also the point of contact! )
+    float3 difNor = normalize( dif );
+
+    float restitution = .8;
+    float friction = 0;
+
+
+    // doing out collision and resolving for relative velocity
+    // BUT need to add back in after
+    
+    doCollision( newPos , newVel , penetration , velRel , difNor , restitution , friction );
+
+
+    // Since we are calculating our collision in a frame of refernce
+    // that is the spheres, we got to add it back in!
+    newVel += _SphereVelocity;
+
+
+  float4 plane = float4( 0,1,0,0);
+
+  penetration = max(0.0, vertRadius - dot(float4(newPos, 1.0), plane));
+  float3 norm = plane.xyz;
+  doCollision( newPos , newVel , penetration , newVel , norm , restitution , friction );
+
+
+
+
+  
+
+
+  
+
+
+
+newPos  += newVel * dT;
+
+
+vert.life -= .001 * hash(float(pID) * 1000 );
+if( vert.life <= 0 ){
+    newPos = float3(hash(float(pID) * 100)-.5,3,hash(float(pID) * 10)-.5) * .5;
+    newVel = 0;
+    vert.life = 1;
+}
+
+  vert.pos = newPos;
+  vert.vel = newVel;
+  
+
+  
+  _VertBuffer[pID] = vert;
+
+}
+
+

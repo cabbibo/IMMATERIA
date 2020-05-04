@@ -1,0 +1,146 @@
+﻿#pragma kernel Forces
+#pragma kernel Resolve
+
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 force;
+  float3 debug1;
+  float2 uv;
+  float2 debug2;
+};
+
+
+
+float _DT;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+
+int _VertBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/hash.cginc"
+
+float3 _DisformerPosition;
+
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Forces(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  
+
+    // Randomly place in cube on start;
+    if( length( vert.pos )== 0 ){
+        vert.pos.x = hash(float(pID) * 20) * 2 -1;
+        vert.pos.y = hash(float(pID) * 30) * 2 -1;
+        vert.pos.z = hash(float(pID) * 40) * 2 -1;
+    }
+
+  float3 force = 0;
+
+  
+    force += float3(0,-3,0);
+
+  
+
+    for(int i = 0; i < _VertBuffer_COUNT; i++ ){
+        if( i != pID ){
+            Vert vert2 = _VertBuffer[i];
+
+            float3 p1 = vert.pos;
+            float3 p2 = vert2.pos;
+            float3 v1 = vert.vel;
+            float3 v2 = vert2.vel;
+
+            float3 dif = p1-p2;
+            float dist = length(dif);
+            float3 normalizedDif = normalize(dif);
+            float3 relativeVel = v1 -v2;
+
+            float diameter = .03;
+          // project our velocity onto the vector between the particles
+            // then subtract from velocity to get our tangential velocity
+            //( tangential to point of contact! )
+            float3 relativeTangentialVel = relativeVel - ( dot(relativeVel,normalizedDif) * normalizedDif);
+
+
+            // Our particles are colliding!
+            if( dist < diameter * 2 ){
+                float penetration = diameter*2 - dist;
+                force += normalizedDif * penetration * 300;
+            }
+  
+        }
+    }
+
+
+
+float wallForce = 1000;
+    float oPos = vert.pos;
+    if( abs(vert.pos.x) > 1  ){
+        float penetration = abs(vert.pos.x)-1;
+        force -= penetration * wallForce * float3(1,0,0) * sign(vert.pos.x);
+    }
+
+    if( abs(vert.pos.y) > 1  ){
+        float penetration = abs(vert.pos.y)-1;
+        force -= penetration * wallForce * float3(0,1,0) * sign(vert.pos.y);
+    }
+
+    if( abs(vert.pos.z) > 1  ){
+        float penetration = abs(vert.pos.z)-1;
+        force -= penetration * wallForce * float3(0,0,1) * sign(vert.pos.z);
+    }
+  
+
+    float3 dif = _DisformerPosition - vert.pos;
+    if( length(dif) < .25 ){
+        float penetration = length( dif )-.25;
+        force += normalize(dif) * penetration * 1000;
+    }
+
+
+
+  
+  vert.force = force;
+  
+  _VertBuffer[pID] = vert;
+
+}
+
+
+[numthreads(NR_THREADS,1,1)]
+void Resolve(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID) {
+
+  int pID = threadID + u3GroupID.x * NR_THREADS;
+
+  pID = safeID(pID,_VertBuffer_COUNT);
+  Vert vert = _VertBuffer[pID];
+  
+
+  vert.vel += vert.force * _DT;
+  vert.pos += vert.vel * _DT;
+
+  vert.vel *= .98;
+
+
+
+
+    //vert.vel -= (vert.pos - oPos) * .1;
+
+
+  _VertBuffer[pID] = vert;
+
+}
+
+
+
+
+
+

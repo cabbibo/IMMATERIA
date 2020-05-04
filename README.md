@@ -2,7 +2,7 @@
 # IM || MATERIA
 Hi there and welcome to the **IM || MATERIA** readme!
 
-
+**IM || MATERIA** is a repository for helping quickly create modular compute shader systems. 
    
 I want to take you through the basics of the system, while making it so you can get to playing as quickly as possible! If anything doesn’t make sense, please let me know @cabbibo , as a bug, or just send it to my personal email isaac...landon...cohen ( gmail dot com )
 
@@ -49,35 +49,44 @@ I am hoping to record videos of each the following scenes, but for now, you can 
 - Scenes/Particles/ParticlesWithTrails 
 
 **_Meshes_**
-- Scenes/Particles/MeshesAsParticles
+- Scenes/Meshes/MeshesAsParticles
 - Scenes/Meshes/MeshesAsGrass
 - Scenes/Meshes/MeshesAsTrail 
 - Scenes/Meshes/MeshesAsRope 
+- Scenes/Meshes/SmoothGooMesh 
 
 **_Skinned Meshes_**
-- Scenes/Meshes/SkinnedMeshRenderer ( Coming Soon )
-- Scenes/Meshes/HairOnSkinnedMeshRenderer ( Coming Soon )
+- Scenes/Meshes/SkinnedMeshRenderer
+- Scenes/Meshes/HairOnSkinnedMeshRenderer 
+- Scenes/Meshes/FakeBoneSDF 
 
-**_SDF_**
+**_SDF / 3D_**
 - Scenes/SDF/SDFBasic
 - Scenes/SDF/MeshToSDF 
 - Scenes/SDF/SDFToMesh
 - Scenes/SDF/ParticlesOnSDF 
-
-
+- Scenes/SDF/FluidSim ( Coming Soon )
 
 **_Cloth_**
-- Scenes/Cloth/ClothOnSDF ( Coming Soon )
-- Scenes/Cloth/ClothOnTransformBuffer ( Coming Soon )
-- Scenes/Cloth/ClothPinned ( Coming Soon )
-- Scenes/Cloth/HairyCloth ( Coming Soon )
+- Scenes/Cloth/ClothBasic
+- Scenes/Cloth/ClothOnSDF
 
-**_GOO_** 
-- Scenes/Goo/SmoothGooMesh ( Coming Soon )
-- Scenes/Goo/HumanDisformedGoo ( Coming Soon )
+**_Effectors_**
+- Scenes/Effectors/MeshesOnSkinned Mesh ( Coming Soon )
+- Scenes/Effectors/NoiseOnMeshes ( Coming Soon )
+
+**_Other_**
+- Scenes/Other/Caustics ( Coming Soon )
+- Scenes/Others/PlacingPointsOnMesh ( Coming Soon )
+- Scenes/Others/BakingOutOBJ ( Coming Soon )
+
+**_Getting Data BACK_**
+- Closest Point ( Coming Soon )
+- Closest Point On Tri ( Coming Soon )
+- Total Force ( Coming Soon )
 
 **_Materials_**
-Scenes/MaterialExplorer includes the following materials
+Scenes/MaterialExplorer includes the following materials:
 - Basic Color 
 - Basic Color with Shadow
 - Normal 
@@ -94,9 +103,16 @@ Scenes/MaterialExplorer includes the following materials
 - Force Materials ( Coming Soon )
 - Sketch Materials ( Coming Soon )
 - Volumetric Depth Materials ( Coming Soon )
-  
 
+*Note that many of the shaders only care about one light ( or even no lights! )
 
+# PREMADE
+In addition to the library, I've tried to make a few prefabs that should 'just work' with no need wire together things inside system. Instead you just choose your materials, play with some sliders and you've got your object!  
+
+- Grass on Mesh ( Coming Soon )
+- Grass on Scene ( Coming Soon )
+- Hair on Skinned Mesh ( Coming Soon )
+- Gooey Mesh ( Coming Soon ) 
 
 
 # Cheat Sheet

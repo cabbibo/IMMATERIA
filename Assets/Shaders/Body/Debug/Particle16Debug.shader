@@ -28,6 +28,7 @@ Shader "IMMAT/Debug/Particles16" {
       float4 frag (varyings v) : COLOR {
 
           if( length( v.uv2 -.5) > .5 ){ discard;}
+          
           return float4(_Color,1 );
       }
 

@@ -8,6 +8,7 @@
         _OutlineWidth("_OutlineWidth",float) = 0
         _OutlineHue("_OutlineHue", float ) = .5
         
+        _Multiplier("_Multiplier", float ) = 1
         _BumpMap("_BumpMap", 2D) = "white" {}
     }
     SubShader
@@ -67,6 +68,7 @@
                 half3 tspace2 : TEXCOORD9; // tangent.z, bitangent.z, normal.z
             };
             float4 _Color;
+            float _Multiplier;
 
             StructuredBuffer<Vert> _VertBuffer;
             StructuredBuffer<int> _TriBuffer;
@@ -124,7 +126,7 @@
                 float val = dot( reflect(worldNormal,normalize(v.eye)) , _WorldSpaceLightPos0.xyz);
                 val += dot( worldNormal , normalize( v.eye));
                 float3 col = tex2D(_ColorMap, val * _ColorMapSize + _ColorMapStart + _Time.y ) ;
-                col *= skyColor*2;
+                col *= skyColor*2 * _Multiplier;
                 return float4(col,1);
             }
 

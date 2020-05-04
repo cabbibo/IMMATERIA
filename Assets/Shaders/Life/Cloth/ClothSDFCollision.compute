@@ -1,0 +1,109 @@
+﻿#pragma kernel Collision
+
+#include "../../Chunks/noise.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/curlNoise.cginc"
+
+
+struct Vert{
+  float3 pos;
+  float3 oPos;
+  float3 nor;
+  float3 tang;
+  float2 uv;
+  float2 debug;
+};
+
+RWStructuredBuffer<Vert> _VertBuffer;
+uint _VertBuffer_COUNT;
+
+
+
+float3 _Dimensions;
+float3 _Extents;
+float3 _Center;
+
+float4x4 _SDFTransform;
+float4x4 _SDFInverseTransform;
+
+Texture3D<float4> _SDFTexture;
+SamplerState _LinearClamp;
+
+
+int _NumVertsX;
+int _NumVertsY;
+
+
+float _Time;
+
+#include "../../Chunks/safeID.cginc"
+
+float3 getVel( float3 p1 , float3 p2 ){
+
+  float3 v = p1 - p2;
+
+  if( length( v ) > .5){ v = normalize( v ) *.5; }
+  return v;
+  
+}
+
+#define NR_THREADS 128
+
+[numthreads(NR_THREADS,1,1)]
+void Collision (uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID, uint3 id : SV_DispatchThreadID) {
+
+  uint pID = id.x;
+  if( pID < _VertBuffer_COUNT){
+
+    pID = safeID( pID , _VertBuffer_COUNT );
+    Vert vert = _VertBuffer[pID];
+
+    float3 force = float3(0,-1.4,0);
+
+    float3 tPos = mul( _SDFInverseTransform ,float4(vert.pos,1));
+    tPos -= _Center;
+    tPos /= _Extents;
+
+    tPos += 1;
+    tPos /= 2;
+
+    float4 t = _SDFTexture.SampleLevel(_LinearClamp,tPos , 0);
+
+
+    vert.debug.x = t.x;
+    vert.debug.y = t.y;
+
+
+
+    bool tb = false;
+    if( t.x < .06 ){
+    
+     vert.pos = vert.oPos;
+    // tb= true;
+    }
+    // Inertia: objects in motion stay in motion.
+    float3 vel = getVel( vert.pos , vert.oPos);
+
+    if( length( force ) > 10 ){
+      force = normalize(force) * 10;
+    }
+ 
+
+
+
+    if(tb == false ){
+
+      float dampening =.98;//_Dampening;//.99999;// - vert.life * .01;
+      float3 next = vert.pos + vel  * dampening+ force * .0001;
+
+      vert.oPos = vert.pos;
+      vert.pos = next;
+
+    }
+
+    _VertBuffer[pID] = vert;
+
+  }
+  
+}
+

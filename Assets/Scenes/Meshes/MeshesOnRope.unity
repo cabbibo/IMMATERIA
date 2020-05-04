@@ -860,7 +860,7 @@ MonoBehaviour:
   - 0
   - 0.38628
   - 0
-  - 2.6457767
+  - 1.1757774
   - 4.796352
   - 0.06361079
   - 1
@@ -876,7 +876,7 @@ MonoBehaviour:
   - 0
   - 2.5887957
   - 0
-  - -6.8493767
+  - -3.0438461
   - -12.416775
   - -0.16467476
   - 1
@@ -1191,7 +1191,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1057623344}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -13.02, y: 5.22, z: 3.41}
+  m_LocalPosition: {x: -14.49, y: 5.22, z: 3.41}
   m_LocalScale: {x: 0.38628, y: 0.38628, z: 0.38628}
   m_Children: []
   m_Father: {fileID: 995456153}
@@ -1287,7 +1287,7 @@ MonoBehaviour:
   data: {fileID: 3138144007890964514}
   Cycles: []
   count: 70608
-  saveName: entity7220111
+  saveName: entity3592303
   alwaysRemake: 0
   intBuffer: 1
   structSize: 1
@@ -1295,7 +1295,7 @@ MonoBehaviour:
   timeToCreate: 0
   totalMemory: 0
   debugMaterial: {fileID: 0}
-  loadedFromFile: 1
+  loadedFromFile: 0
   toIndex: {fileID: 1330443690}
   tris: {fileID: 605453114}
   numMesh: 4
@@ -1674,7 +1674,7 @@ MonoBehaviour:
   - 0
   - 0
   - 0
-  numFrames: 9729
+  numFrames: 3326
 --- !u!4 &1547819909
 Transform:
   m_ObjectHideFlags: 0
@@ -1728,7 +1728,8 @@ MonoBehaviour:
   countMultiplier: 1
   kernel: 2
   executionTime: 0
-  numberOfPasses: 1
+  numPasses: 2
+  numIterations: 1
 --- !u!114 &1547819911
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2304,7 +2305,7 @@ MonoBehaviour:
   camera: {fileID: 963194228}
   humans: {fileID: 0}
   god: {fileID: 3138144007890964541}
-  time: 120.930824
+  time: 25.08089
 --- !u!1 &3138144007890964515
 GameObject:
   m_ObjectHideFlags: 0

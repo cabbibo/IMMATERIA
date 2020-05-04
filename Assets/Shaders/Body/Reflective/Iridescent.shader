@@ -5,6 +5,7 @@
         _ColorMap("_ColorMap", 2D) = "white" {}
         _ColorMapStart("_ColorMapStart",float) = 0
         _ColorMapSize("_ColorMapSize",float) = 0
+        _Multiplier("_Multiplier",float) = 1
     }
     SubShader
     {
@@ -36,6 +37,8 @@
             int _Steps;
             float _ColorMapStart;
             float _ColorMapSize;
+
+            float _Multiplier;
 
             struct v2f { 
               float4 pos : SV_POSITION; 
@@ -112,7 +115,7 @@
     float lookup = dot( worldViewDir , worldNormal );
                 float3 col = skyColor * tex2D(_ColorMap,lookup * _ColorMapSize + _ColorMapStart);// + worldNormal* .2+ .3;//UNITY_SAMPLE_TEXCUBE(unity_SpecCube0, worldNormal);///worldNormal * .5 + .5;//skyColor;//tex2D(_ColorMap, val * _ColorMapSize + _ColorMapStart ) * val;
         
-                return float4(col,1);
+                return float4(col*_Multiplier,1);
             }
 
             ENDCG

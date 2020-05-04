@@ -1,0 +1,98 @@
+﻿#pragma kernel Flow
+
+struct Vert{
+  float3 pos;
+  float3 vel;
+  float3 nor;
+  float3 tangent;
+  float2 uv;
+  float debug;
+  float life;
+};
+
+float4x4 _Transform;
+
+RWStructuredBuffer<Vert> _VertBuffer;
+
+int _VertBuffer_COUNT;
+int _TransformBuffer_COUNT;
+
+#include "../../Chunks/safeID.cginc"
+#include "../../Chunks/snoise.cginc"
+#include "../../Chunks/hash.cginc"
+#include "../../Chunks/curlNoise.cginc"
+#include "../../Chunks/ParticleAxisHelpers.cginc"
+
+float3 _Dimensions;
+float3 _Extents;
+float3 _Center;
+
+float4x4 _SDFTransform;
+float4x4 _SDFInverseTransform;
+
+
+Texture3D<float4> _SDFTexture;
+SamplerState _LinearClamp;
+
+void DoInit(inout Vert v , int pID){
+
+}
+
+
+float3 DoRemitPosition(int p){
+   return  mul( _Transform, float4( hash(float(p)*20)-.5,0 , hash(float(p)*231)-.5,1)).xyz;
+}
+
+float3 DoRemitVelocity(int p){return 0;}
+
+
+float3 DoForce( inout Vert vert , int pID){
+    float3 force = 0;
+    force += 4.4*curlNoise(vert.pos * 2.4);
+    force +=  mul( _Transform, float4( 0,-.3 ,0,0)).xyz;
+    force *= .00004 * (1+hash(pID*1021.))/2;
+
+
+    // Giving the vert a tangent
+//    vert.tangent =normalize(cross( vert.axis , normalize( vert.nor )));
+
+
+
+
+    float3 tPos = mul( _SDFInverseTransform ,float4(vert.pos,1));
+    tPos -= _Center;
+    tPos /= _Extents;
+
+    tPos += 1;
+    tPos /= 2;
+
+    float4 t = _SDFTexture.SampleLevel(_LinearClamp,tPos , 0);
+
+    if( t.x < .6 ){
+
+     force += -t.yzw * (t.x-.6) * .1;
+
+    }
+
+
+vert.debug = t.x;
+
+    //force = - t.yzw * .001 * t.x;
+
+    
+    return force;
+}
+
+float DoLife( Vert v , int pID ){
+    return .0002 * (3+sin(float(pID)));
+}
+
+float DoDampening( Vert v , int pID){
+    return .99;
+}
+
+#define NR_THREADS 128
+[numthreads(NR_THREADS,1,1)]
+void Flow(uint3 id : SV_DispatchThreadID) {
+    #include "../../Chunks/SimplifiedSimulation.cginc"
+}

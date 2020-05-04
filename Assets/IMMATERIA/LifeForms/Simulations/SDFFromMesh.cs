@@ -84,6 +84,7 @@ public class SDFFromMesh : Simulation
   public void OnComplete(){
     finalLife.YOLO();
     ((Form3D)form).MakeTexture();
+    Saveable.Save(form);
     finished = true;
   }
 
