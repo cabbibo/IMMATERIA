@@ -31,6 +31,27 @@ int _BoneBuffer_COUNT;
 #include "../../Chunks/ParticleAxisHelpers.cginc"
 
 
+
+float map( float3 pos ){
+
+    float d = 1000;
+    for( int i = 0; i < _BoneBuffer_COUNT; i++ ){
+        Bone b = _BoneBuffer[i];
+        d = min( d , sdCapsule(pos , b.start, b.end, b.size));
+    }
+    return d;
+}
+
+float3 GetNor( float3 pos ){
+  float3 eps = float3(0.0001,0,0);
+  float3 nor = float3( map( pos-eps.xyy) - map( pos+eps.xyy)
+                     , map( pos-eps.yxy) - map( pos+eps.yxy)
+                     , map( pos-eps.yyx) - map( pos+eps.yyx));
+
+  return normalize(nor);
+
+}
+
 float _Time;
 void DoInit(inout Vert v , int pID){}
 

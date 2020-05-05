@@ -71,6 +71,7 @@ Material:
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
+    - _Multiplier: 5.53
     - _OcclusionStrength: 1
     - _OutlineHue: -5.89
     - _OutlineWidth: 0.02
