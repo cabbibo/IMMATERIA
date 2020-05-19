@@ -237,7 +237,7 @@ Cycle B.a
 Cycle B.b
 Cycle C
 ```
-This is all fine and dandy, but what if ```Cycle A``` requires something to be done on ```Cycle A``` before it runs? For example, what if ```Cycle A``` is a list of particles that need to be placed smoothly along a mesh ( ```Cycle B``` ) surface? We need the mesh to be created before ```Cycle A``` before it gets run otherwise its going to place it on ***WHAT?*** nothing? 
+This is all fine and dandy, but what if ```Cycle A``` requires something to be done on ```Cycle B``` before it runs? For example, what if ```Cycle A``` is a list of particles that need to be placed smoothly along a mesh ( ```Cycle B``` ) surface? We need the mesh to be created before ```Cycle A``` before it gets run otherwise its going to place it on ***WHAT?*** nothing? 
 
 Now in Unity, we would go into the script execution order and make sure ```Cycle B``` got called before ```Cycle A``` but that gets *really* tedious, especially with more complex systems.
 
